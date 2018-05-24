@@ -31,22 +31,31 @@ public class AdBannerUtils {
             return;
         }
 
-        InitConfiguration initConfig = new InitConfiguration.Builder(context).setUpdateMode(InitConfiguration.UpdateMode.EVERYTIME)
-                // 实时获取配置，非必须写
-                .setAdSize(InitConfiguration.AdSize.BANNER_SMART)
-                .setBannerCloseble(InitConfiguration.BannerSwitcher.CANCLOSED) //横幅可关闭按钮 .setRunMode(RunMode.TEST) //测试模式时log更多，方便调试，不影响竞价展示正式广告和收益情况，可能影响个别第三方平台的正式广告展示，建议应用上线时删除该行
-                .build(); // 初始化横幅、插屏、原生、开屏、视频的广告配置，必须写
-        AdViewBannerManager.getInstance(context).init(initConfig, new String[]{AdModelUtils.SDK_KEY});
-        AdViewInstlManager.getInstance(context).init(initConfig, new String[]{AdModelUtils.SDK_KEY});
-        //AdViewNativeManager.getInstance(this).init(initConfig,MainActivity.keySet);
-        AdViewSpreadManager.getInstance(context).init(initConfig, new String[]{AdModelUtils.SDK_KEY});
-        //AdViewVideoManager.getInstance(this).init(initConfig,MainActivity.keySet);
+        try {
+            InitConfiguration initConfig = new InitConfiguration.Builder(context).setUpdateMode(InitConfiguration.UpdateMode.EVERYTIME)
+                    // 实时获取配置，非必须写
+                    .setAdSize(InitConfiguration.AdSize.BANNER_SMART)
+                    .setBannerCloseble(InitConfiguration.BannerSwitcher.CANCLOSED) //横幅可关闭按钮 .setRunMode(RunMode.TEST) //测试模式时log更多，方便调试，不影响竞价展示正式广告和收益情况，可能影响个别第三方平台的正式广告展示，建议应用上线时删除该行
+                    .build(); // 初始化横幅、插屏、原生、开屏、视频的广告配置，必须写
+            AdViewBannerManager.getInstance(context).init(initConfig, new String[]{AdModelUtils.SDK_KEY});
+            AdViewInstlManager.getInstance(context).init(initConfig, new String[]{AdModelUtils.SDK_KEY});
+            //AdViewNativeManager.getInstance(this).init(initConfig,MainActivity.keySet);
+            AdViewSpreadManager.getInstance(context).init(initConfig, new String[]{AdModelUtils.SDK_KEY});
+            //AdViewVideoManager.getInstance(this).init(initConfig,MainActivity.keySet);
+        } catch (Throwable e) {
+
+        }
     }
 
     public static void initBanner(ViewGroup layout, ViewGroup gdt, Activity context) {
 
-        initAd(context);
-        adviewBanner(layout, gdt, context, null);
+        try {
+            initAd(context);
+            adviewBanner(layout, gdt, context, null);
+        } catch (Throwable e) {
+
+        }
+
         gdtBanner(gdt, layout, context);
     }
 
