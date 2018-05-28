@@ -24,7 +24,7 @@
 
         <service android:name="com.chenghui.study.sdk.DownloadService" />
 
-        <activity android:name="com.chenghui.study.sdk.AdviewWebView" />
+        <activity android:name="com.chenghui.study.sdk.AdViewLandingPage" />
         <activity android:name="com.chenghui.study.sdk.AdActivity" />
 
     </application>
