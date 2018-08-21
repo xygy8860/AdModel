@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (adInstalUtils == null) {
-                    adInstalUtils = new AdInstalUtils(MainActivity.this, AdModelUtils.NativeId_Img);
+                    adInstalUtils = new AdInstalUtils(MainActivity.this,AdModelUtils.NativeId_Img,0,null);
                 }
                 adInstalUtils.refreshAd(0);
             }
