@@ -107,7 +107,7 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
 
     @Override
     public void onNoAD(AdError adError) {
-        //Log.i(TAG, String.format("onNoAD, error code: %d, error msg: %s", adError.getErrorCode(), adError.getErrorMsg()));
+        Log.i(TAG, String.format("onNoAD, error code: %d, error msg: %s", adError.getErrorCode(), adError.getErrorMsg()));
 
         if (count < 2) {
             refreshAd(count + 1);
@@ -154,7 +154,7 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
 
     @Override
     public void onRenderFail(NativeExpressADView adView) {
-        //Log.i(TAG, "onRenderFail");
+        Log.i(TAG, "onRenderFail");
         if (!isVertical) {
             if (dialog != null) {
                 dialog.dismiss();
@@ -165,7 +165,7 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
 
     @Override
     public void onRenderSuccess(NativeExpressADView adView) {
-        //Log.i(TAG, "onRenderSuccess");
+        Log.i(TAG, "onRenderSuccess");
 
         if (!isVertical) {
             if (dialog != null) {
@@ -178,7 +178,10 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
     public void onADExposure(NativeExpressADView adView) {
         Log.i(TAG, "onADExposure");
         if (isVertical && mCarouselDialog != null) {
+            mCarouselDialog.show();
             mCarouselDialog.onADExposure();
+        } else if (dialog != null) {
+            dialog.show();
         }
     }
 
