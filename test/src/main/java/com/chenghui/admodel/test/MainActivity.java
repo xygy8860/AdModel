@@ -33,6 +33,11 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.hello).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(adInstalUtils != null){
+                    adInstalUtils.ondetory();
+                    adInstalUtils = null;
+                }
+
                 if (adInstalUtils == null) {
                     adInstalUtils = new AdInstalUtils(MainActivity.this,AdModelUtils.NativeId_Img,0,null);
                 }
