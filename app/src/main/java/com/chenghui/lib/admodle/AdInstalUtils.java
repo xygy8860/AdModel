@@ -166,7 +166,6 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
     @Override
     public void onRenderSuccess(NativeExpressADView adView) {
         Log.i(TAG, "onRenderSuccess");
-
         if (!isVertical) {
             if (dialog != null) {
                 dialog.show();
