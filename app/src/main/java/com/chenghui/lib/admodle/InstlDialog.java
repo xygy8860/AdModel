@@ -75,6 +75,10 @@ public class InstlDialog {
         });
     }
 
+    public void dismissOnly() {
+        dialog.dismiss();
+    }
+
     public void dismiss() {
         if (layout != null && layout.getChildCount() > 0) {
             layout.removeAllViews();

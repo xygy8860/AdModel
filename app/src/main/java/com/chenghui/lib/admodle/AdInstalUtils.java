@@ -178,11 +178,11 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
     public void onADExposure(NativeExpressADView adView) {
         Log.i(TAG, "onADExposure");
         if (isVertical && mCarouselDialog != null) {
-            mCarouselDialog.dismiss();
+            mCarouselDialog.dismissOnly();
             mCarouselDialog.show();
             mCarouselDialog.onADExposure();
         } else if (dialog != null) {
-            dialog.dismiss();
+            dialog.dismissOnly();
             dialog.show();
         }
     }

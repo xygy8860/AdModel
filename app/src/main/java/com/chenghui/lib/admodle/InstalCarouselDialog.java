@@ -165,6 +165,10 @@ public class InstalCarouselDialog {
         });
     }
 
+    public void dismissOnly(){
+        dialog.dismiss();
+    }
+
     // 销毁相关数据
     public void dismiss() {
         if (mViewPager != null && mViewPager.getChildCount() > 0) {
