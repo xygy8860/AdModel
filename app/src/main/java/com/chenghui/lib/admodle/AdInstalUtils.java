@@ -5,8 +5,6 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.chenghui.study.sdk.interfaces.AdViewInstlListener;
-import com.chenghui.study.sdk.manager.AdViewInstlManager;
 import com.qq.e.ads.cfg.VideoOption;
 import com.qq.e.ads.interstitial.AbstractInterstitialADListener;
 import com.qq.e.ads.interstitial.InterstitialAD;
@@ -271,40 +269,6 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
 
     private void adviewInstal() {
         AdBannerUtils.initAd(activity);
-        // 初始化之后请求插屏广告，请求与展示广告，单独使用
-        AdViewInstlManager.getInstance(activity).requestAd(activity, AdModelUtils.SDK_KEY, new AdViewInstlListener() {
-            @Override
-            public void onAdClick(String s) {
-
-            }
-
-            @Override
-            public void onAdDisplay(String s) {
-
-            }
-
-            @Override
-            public void onAdDismiss(String s) {
-
-            }
-
-            @Override
-            public void onAdRecieved(String s) {
-                // 请求广告成功之后，调用展示广告
-                AdViewInstlManager.getInstance(activity).showAd(activity, AdModelUtils.SDK_KEY);
-
-                if (listener != null) {
-                    listener.successed();
-                }
-            }
-
-            @Override
-            public void onAdFailed(String s) {
-                if (listener != null) {
-                    listener.failed();
-                }
-            }
-        });
     }
 
     public void ondetory() {

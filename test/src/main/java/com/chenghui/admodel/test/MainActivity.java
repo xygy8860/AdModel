@@ -18,7 +18,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         AdModelUtils.APPID = "1105735729";
 
         AdModelUtils.NativeId_Img = "1070134109570553"; // 纯图片 竖图  7010232119579486

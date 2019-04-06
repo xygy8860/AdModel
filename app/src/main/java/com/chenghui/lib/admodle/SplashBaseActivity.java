@@ -165,6 +165,11 @@ public abstract class SplashBaseActivity extends Activity {
             public void onADTick(long l) {
                 mJumpBtn.setText(" " + Math.round(l / 1000) + "跳过 ");
             }
+
+            @Override
+            public void onADExposure() {
+
+            }
         }, 0);
     }
 
