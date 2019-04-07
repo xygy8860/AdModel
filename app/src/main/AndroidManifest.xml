@@ -40,15 +40,15 @@
         <!--android:authorities="${applicationId}.union_adsdk_tt"-->
         <!--android:exported="false" />-->
         <!-- targetSDKVersion >= 24时才需要添加这个 provider。provider 的 authorities 属性的值为 ${applicationId}.fileprovider，请开发者根据自己的 ${applicationId} 来设置这个值 -->
-        <!--<provider
-            android:name="android.support.v4.content.FileProvider"
+        <provider
+            android:name=".GDTFileProvider"
             android:authorities="${applicationId}.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/gdt_file_path" />
-        </provider>-->
+                android:resource="@xml/admodel_gdt_file_path" />
+        </provider>
     
         <!--<provider
             android:name="com.bytedance.sdk.openadsdk.TTFileProvider"

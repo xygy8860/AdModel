@@ -1,6 +1,0 @@
-<paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 这个下载路径也不可以修改，必须为GDTDOWNLOAD -->
-    <external-path name="gdt_sdk_download_path" path="GDTDOWNLOAD" />
-    <!--既可以访问sd卡的图片又可以访问sd卡外的图片-->
-    <root-path path="." name="filepath" />
-</paths>
