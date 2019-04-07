@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     
+    
     <TextView
         android:id="@+id/hello"
         android:layout_width="wrap_content"
@@ -14,5 +15,11 @@
         android:id="@+id/fragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"></RelativeLayout>
+    
+    <RelativeLayout
+        android:id="@+id/adlayout"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/colorAccent" />
 
 </RelativeLayout>

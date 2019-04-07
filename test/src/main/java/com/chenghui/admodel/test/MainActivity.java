@@ -1,11 +1,10 @@
 package com.chenghui.admodel.test;
 
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
+import android.view.ViewGroup;
 
+import com.chenghui.lib.admodle.AdBannerUtils;
 import com.chenghui.lib.admodle.AdInstalUtils;
 import com.chenghui.lib.admodle.AdModelUtils;
 
@@ -19,11 +18,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         AdModelUtils.APPID = "1105735729";
+        AdModelUtils.SDK_KEY = "SDK20171309010545uakpnj1pd5o551c";
 
         AdModelUtils.NativeId_Img = "1070134109570553"; // 纯图片 竖图  7010232119579486
         AdModelUtils.NativeId_Horizontal_Img = "6020535200535013";
+        AdModelUtils.BannerPosID = "8000811616180200";
 
-        FragmentManager ft = getSupportFragmentManager();
+        /*FragmentManager ft = getSupportFragmentManager();
         FragmentTransaction tr = ft.beginTransaction();
         tr.replace(R.id.fragment, AdFragment.getAdFragment(false));
         tr.commitAllowingStateLoss();
@@ -32,17 +33,21 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.hello).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(adInstalUtils != null){
+                if (adInstalUtils != null) {
                     adInstalUtils.ondetory();
                     adInstalUtils = null;
                 }
 
                 if (adInstalUtils == null) {
-                    adInstalUtils = new AdInstalUtils(MainActivity.this,AdModelUtils.NativeId_Img,0,null);
+                    adInstalUtils = new AdInstalUtils(MainActivity.this, AdModelUtils.NativeId_Img, 0, null);
                 }
                 adInstalUtils.refreshAd(0);
             }
-        });
+        });*/
+
+        AdBannerUtils.initAd(this);
+        ViewGroup layout = findViewById(R.id.adlayout);
+        AdBannerUtils.initBanner(layout, layout, this);
 
     }
 

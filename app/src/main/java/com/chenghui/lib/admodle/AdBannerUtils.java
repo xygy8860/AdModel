@@ -5,14 +5,8 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.text.TextUtils;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
-
-import com.kuaiyou.loader.AdViewBannerManager;
-import com.kuaiyou.loader.InitSDKManager;
-import com.kuaiyou.loader.loaderInterface.AdViewBannerListener;
 import com.qq.e.ads.banner.ADSize;
 import com.qq.e.ads.banner.BannerADListener;
 import com.qq.e.ads.banner.BannerView;
@@ -30,23 +24,23 @@ public class AdBannerUtils {
             return;
         }
 
-        InitSDKManager.getInstance().init(context, AdModelUtils.SDK_KEY);
+        //InitSDKManager.getInstance().init(context, AdModelUtils.SDK_KEY);
     }
 
     public static void initBanner(ViewGroup layout, ViewGroup gdt, Activity context) {
 
-        try {
+        /*try {
             initAd(context);
             adviewBanner(layout, gdt, context, null);
         } catch (Throwable e) {
 
-        }
+        }*/
 
         gdtBanner(gdt, layout, context);
     }
 
     // region 3.2.3 自定义插屏代码
-    private static void adviewBanner(final ViewGroup adviewLayout, final ViewGroup mGdtLayout, final Activity context, final ImageView img) {
+    /*private static void adviewBanner(final ViewGroup adviewLayout, final ViewGroup mGdtLayout, final Activity context, final ImageView img) {
         try {
             if (!isNetworkAvailable(context) || adviewLayout == null) {
                 return;
@@ -117,7 +111,7 @@ public class AdBannerUtils {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
     // endregion
 
@@ -142,7 +136,7 @@ public class AdBannerUtils {
 
                 @Override
                 public void onNoAD(AdError adError) {
-                    adviewBanner(adviewLayout, bannerContainer, activity, null);
+                    //adviewBanner(adviewLayout, bannerContainer, activity, null);
                 }
 
                 @Override

@@ -6,8 +6,8 @@ android {
 
     defaultConfig {
         applicationId "com.chenghui.admodel.test"
-        minSdkVersion 14
-        targetSdkVersion 22
+        minSdkVersion 19
+        targetSdkVersion 26
         versionCode 1
         versionName "1.0"
 
@@ -25,10 +25,31 @@ android {
             applicationId "com.chenghui.study.c"
         }
     }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    repositories {
+        flatDir {
+            dirs 'libs'   // aar目录
+        }
+    }
+
+    // recommend
+    dexOptions {
+        jumboMode = true
+    }
 }
 
 dependencies {
-    api fileTree(dir: 'libs', include: ['*.jar'])
-    api 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.github.xygy8860:AdModel:2.6'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:support-v4:28.0.0'
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+
+    //implementation 'com.github.xygy8860:AdModel:2.7.0.1'
+
+    implementation project(':app')
 }
