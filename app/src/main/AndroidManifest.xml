@@ -60,6 +60,11 @@
                 android:resource="@xml/admodel_tt_file_path" />
         </provider>
         <provider
+            android:name="com.bytedance.sdk.openadsdk.multipro.TTMultiProvider"
+            android:authorities="${applicationId}.TTMultiProvider"
+            android:exported="false" />
+        
+        <provider
             android:name="com.baidu.mobads.openad.FileProvider"
             android:authorities="${applicationId}.bd.provider"
             android:exported="false"
@@ -83,5 +88,8 @@
     
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.GET_TASKS"/>
+    
+    <!-- 如果有视频相关的广告且使用textureView播放，请务必添加，否则黑屏 -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
 </manifest>
