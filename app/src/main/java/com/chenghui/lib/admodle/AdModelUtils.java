@@ -13,6 +13,15 @@ public class AdModelUtils {
     public static String NativeId_img_txt = "9050034189232009"; // 上图下文  1080037139439140
     public static String NativeId_leftImg_rightTxt = "9050034189232009"; // 左图右文*/
 
+
+    // 横幅广告控制几率 默认百度100%
+    public static int BD_Banner_rate = 100;
+    public static int GDT_Banner_rate = 0;
+
+    // 开屏广告控制几率 默认头条100%
+    public static int TT_Splash_rate = 100;
+    public static int GDT_Splash_rate = 0;
+
     public static String APPID = "";
     public static String SplashID = "";
     public static String NativeId_Img = ""; // 纯图片 竖图
@@ -29,5 +38,16 @@ public class AdModelUtils {
 
     //    public static String SDK_KEY = "SDK20170014120225l4da2ffsad5b8vv";
     public static String SDK_KEY = "";
+
+
+    // 以下百度广告配置
+    public static String BD_Appid = "";
+    public static String BD_Banner_id = "";
+
+    // 以下头条广告配置
+    public static String TT_Appid = "";
+    public static String TT_Splash_id = ""; // 开屏广告id
+    public static String TT_Banner_id = "";
+    public static String TT_Name = "";
 
 }

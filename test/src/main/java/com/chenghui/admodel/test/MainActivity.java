@@ -17,12 +17,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        AdModelUtils.APPID = "1105735729";
-        AdModelUtils.SDK_KEY = "SDK20171309010545uakpnj1pd5o551c";
-
-        AdModelUtils.NativeId_Img = "1070134109570553"; // 纯图片 竖图  7010232119579486
-        AdModelUtils.NativeId_Horizontal_Img = "6020535200535013";
-        AdModelUtils.BannerPosID = "8000811616180200";
 
         /*FragmentManager ft = getSupportFragmentManager();
         FragmentTransaction tr = ft.beginTransaction();

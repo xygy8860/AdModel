@@ -32,9 +32,9 @@
             android:name="com.qq.e.ads.LandscapeADActivity"
             android:configChanges="keyboard|keyboardHidden|orientation"
             android:theme="@android:style/Theme.Translucent"></activity>
-        <!--<activity
+        <activity
             android:name="com.baidu.mobads.AppActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation"/>-->
+            android:configChanges="keyboard|keyboardHidden|orientation"/>
         <!--<provider-->
         <!--android:name="com.bytedance.sdk.openadsdk.service.TTDownloadProvider"-->
         <!--android:authorities="${applicationId}.union_adsdk_tt"-->
@@ -50,14 +50,14 @@
                 android:resource="@xml/admodel_gdt_file_path" />
         </provider>
     
-        <!--<provider
+        <provider
             android:name="com.bytedance.sdk.openadsdk.TTFileProvider"
             android:authorities="${applicationId}.TTFileProvider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
+                android:resource="@xml/admodel_tt_file_path" />
         </provider>
         <provider
             android:name="com.baidu.mobads.openad.FileProvider"
@@ -66,8 +66,8 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/bd_file_paths" />
-        </provider>-->
+                android:resource="@xml/admodel_bd_file_path" />
+        </provider>
     
     </application>
     
@@ -82,5 +82,6 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.GET_TASKS"/>
 
 </manifest>
