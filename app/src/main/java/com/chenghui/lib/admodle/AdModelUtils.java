@@ -19,8 +19,9 @@ public class AdModelUtils {
     public static int GDT_Banner_rate = 0;
 
     // 开屏广告控制几率 默认头条100%
-    public static int TT_Splash_rate = 100;
-    public static int GDT_Splash_rate = 0;
+    public static int BD_Splash_rate = 0;
+    public static int TT_Splash_rate = 0;
+    public static int GDT_Splash_rate = 100;
 
     public static String APPID = "";
     public static String SplashID = "";
@@ -43,6 +44,7 @@ public class AdModelUtils {
     // 以下百度广告配置
     public static String BD_Appid = "";
     public static String BD_Banner_id = "";
+    public static String BD_Splash_id = "";
 
     // 以下头条广告配置
     public static String TT_Appid = "";
