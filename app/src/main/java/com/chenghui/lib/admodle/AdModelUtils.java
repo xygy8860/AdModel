@@ -1,21 +1,42 @@
 package com.chenghui.lib.admodle;
 
+import android.content.Context;
+import android.text.TextUtils;
+
+import com.bytedance.sdk.openadsdk.TTAdConfig;
+import com.bytedance.sdk.openadsdk.TTAdConstant;
+import com.bytedance.sdk.openadsdk.TTAdSdk;
+
 /**
  * Created by cdsunqinwei on 2018/3/21.
  */
 
 public class AdModelUtils {
-    // 测试id
-    /*public static String APPID = "1106414865";
-    public static String SplashID = "4050220679022649";
-    public static String NativeId_Img = "5080737128844271"; // 纯图片 竖图
-    public static String NativeId_txt_img = "2040938139636078"; // 上文下图
-    public static String NativeId_img_txt = "9050034189232009"; // 上图下文  1080037139439140
-    public static String NativeId_leftImg_rightTxt = "9050034189232009"; // 左图右文*/
+    // 百度广告初始化
+    public static void initTTAd(Context context) {
+        if (TextUtils.isEmpty(AdModelUtils.TT_Appid)) {
+            return;
+        }
+
+        //强烈建议在应用对应的Application#onCreate()方法中调用，避免出现content为null的异常
+        TTAdSdk.init(context,
+                new TTAdConfig.Builder()
+                        .appId(AdModelUtils.TT_Appid)
+                        .useTextureView(false) //使用TextureView控件播放视频,默认为SurfaceView,当有SurfaceView冲突的场景，可以使用TextureView
+                        .appName(AdModelUtils.TT_Name)
+                        //.titleBarTheme(TTAdConstant.TITLE_BAR_THEME_DARK)
+                        .allowShowNotify(true) //是否允许sdk展示通知栏提示
+                        .allowShowPageWhenScreenLock(true) //是否在锁屏场景支持展示广告落地页
+                        //.debug(false) //测试阶段打开，可以通过日志排查问题，上线时去除该调用
+                        .directDownloadNetworkType(TTAdConstant.NETWORK_STATE_WIFI, TTAdConstant.NETWORK_STATE_4G) //允许直接下载的网络状态集合
+                        .supportMultiProcess(false) //是否支持多进程，true支持
+                        .build());
+    }
 
 
     // 横幅广告控制几率 默认百度100%
     public static int BD_Banner_rate = 100;
+    public static int TT_Banner_rate = 0;
     public static int GDT_Banner_rate = 0;
 
     // 开屏广告控制几率 默认头条100%

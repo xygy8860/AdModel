@@ -9,10 +9,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.baidu.mobads.AdView;
 import com.baidu.mobads.AdViewListener;
+import com.bytedance.sdk.openadsdk.AdSlot;
+import com.bytedance.sdk.openadsdk.TTAdDislike;
+import com.bytedance.sdk.openadsdk.TTAdNative;
+import com.bytedance.sdk.openadsdk.TTAdSdk;
+import com.bytedance.sdk.openadsdk.TTBannerAd;
 import com.qq.e.ads.banner.ADSize;
 import com.qq.e.ads.banner.BannerADListener;
 import com.qq.e.ads.banner.BannerView;
@@ -30,7 +36,7 @@ public class AdBannerUtils {
     private static BannerView bv;
 
     // 百度广告初始化
-    public static void initAd(Context context) {
+    public static void initBDAd(Context context) {
         if (TextUtils.isEmpty(AdModelUtils.BD_Appid)) {
             return;
         }
@@ -45,11 +51,13 @@ public class AdBannerUtils {
         int rand = random.nextInt(100);
         if (rand < AdModelUtils.BD_Banner_rate) { // 如果落在百度范围内则调用百度
             try {
-                initAd(context);
+                initBDAd(context);
                 adviewBanner(layout, gdt, context);
             } catch (Throwable e) {
 
             }
+        } else if (rand < AdModelUtils.BD_Banner_rate + AdModelUtils.TT_Banner_rate) {
+            loadBannerTTAd(layout, gdt, context);
         } else {
             gdtBanner(gdt, layout, context);
         }
@@ -61,7 +69,6 @@ public class AdBannerUtils {
             if (!isNetworkAvailable(context) || adviewLayout == null) {
                 return;
             }
-
 
             View view = LayoutInflater.from(adviewLayout.getContext()).inflate(R.layout.admodel_bd_banner_layout, adviewLayout, false);
             ViewGroup bdLayout = view.findViewById(R.id.admodel_bd_banner_layout);
@@ -220,6 +227,61 @@ public class AdBannerUtils {
 
         }
         return false;
+    }
+
+    private static void loadBannerTTAd(final ViewGroup bannerContainer, final ViewGroup adviewLayout, final Activity activity) {
+        //step4:创建广告请求参数AdSlot,具体参数含义参考文档
+        AdSlot adSlot = new AdSlot.Builder()
+                .setCodeId(AdModelUtils.TT_Banner_id) //广告位id
+                .setSupportDeepLink(true)
+                .setImageAcceptedSize(600, 150)
+                .build();
+        //step5:请求广告，对请求回调的广告作渲染处理
+        TTAdNative mTTAdNative = TTAdSdk.getAdManager().createAdNative(activity);
+        mTTAdNative.loadBannerAd(adSlot, new TTAdNative.BannerAdListener() {
+
+            @Override
+            public void onError(int code, String message) {
+                gdtBanner(bannerContainer, adviewLayout, activity);
+            }
+
+            @Override
+            public void onBannerAdLoad(final TTBannerAd ad) {
+                if (ad == null) {
+                    return;
+                }
+                View bannerView = ad.getBannerView();
+                if (bannerView == null) {
+                    return;
+                }
+                //设置轮播的时间间隔  间隔在30s到120秒之间的值，不设置默认不轮播
+                ad.setSlideIntervalTime(30 * 1000);
+                bannerContainer.removeAllViews();
+
+                FrameLayout frameLayout = new FrameLayout(activity);
+                ViewGroup.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                frameLayout.setLayoutParams(params);
+                frameLayout.addView(bannerView);
+
+                bannerContainer.addView(frameLayout);
+                //（可选）设置下载类广告的下载监听
+                //bindDownloadListener(ad);
+                //在banner中显示网盟提供的dislike icon，有助于广告投放精准度提升
+                ad.setShowDislikeIcon(new TTAdDislike.DislikeInteractionCallback() {
+                    @Override
+                    public void onSelected(int position, String value) {
+                        //TToast.show(mContext, "点击 " + value);
+                        //用户选择不喜欢原因后，移除广告展示
+                        bannerContainer.removeAllViews();
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        //TToast.show(mContext, "点击取消 ");
+                    }
+                });
+            }
+        });
     }
 
 

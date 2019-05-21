@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.MainThread;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
@@ -14,6 +15,10 @@ import android.widget.TextView;
 
 import com.baidu.mobads.SplashAd;
 import com.baidu.mobads.SplashLpCloseListener;
+import com.bytedance.sdk.openadsdk.AdSlot;
+import com.bytedance.sdk.openadsdk.TTAdNative;
+import com.bytedance.sdk.openadsdk.TTAdSdk;
+import com.bytedance.sdk.openadsdk.TTSplashAd;
 import com.qq.e.ads.cfg.VideoOption;
 import com.qq.e.ads.nativ.ADSize;
 import com.qq.e.ads.nativ.NativeExpressAD;
@@ -51,6 +56,12 @@ public abstract class SplashBaseActivity extends Activity {
     private TimeRunnable timeRunnable;
     private TimeOutRunnable timeOutRunnable;
 
+    //开屏广告加载超时时间,建议大于1000,这里为了冷启动第一次加载到广告并且展示,示例设置了2000ms
+    private static final int AD_TIME_OUT = 2000;
+    private static final int MSG_GO_MAIN = 1;
+    //开屏广告是否已经加载
+    private boolean mHasLoaded;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,7 +74,20 @@ public abstract class SplashBaseActivity extends Activity {
     protected void initAdParams() {
         Random random = new Random();
         int rand = random.nextInt(100);
-        if (rand < AdModelUtils.BD_Splash_rate) { // 如果落在头条范围内，开屏头条
+
+        canJump = false;
+
+        /**
+         * 例如：TT=50 BD=30
+         *
+         */
+        if (rand < AdModelUtils.TT_Splash_rate) {  //如果落在头条范围内，开屏头条 rand < 50
+            try {
+                loadSplashTTAd();
+            } catch (Exception e) {
+                QQKaiping(0);
+            }
+        } else if (rand < AdModelUtils.TT_Splash_rate + AdModelUtils.BD_Splash_rate) { // 50 < rand < 50 + 30
             try {
                 loadSplashAd();
             } catch (Exception e) {
@@ -90,7 +114,12 @@ public abstract class SplashBaseActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        canJump = false;
+
+        if (mHasLoaded) { // 如果是头条开屏，那么因为倒计时暂停，那么返回后必须强制跳转主页
+            canJump = true;
+        } else {
+            canJump = false;
+        }
     }
 
     @Override
@@ -117,6 +146,8 @@ public abstract class SplashBaseActivity extends Activity {
             handler = null;
             timeRunnable = null;
         }
+
+        canJump = false;
     }
 
     /**
@@ -134,7 +165,7 @@ public abstract class SplashBaseActivity extends Activity {
      * 加载 百度开屏广告
      */
     private void loadSplashAd() {
-        AdBannerUtils.initAd(this);
+        AdBannerUtils.initBDAd(this);
         // 增加lp页面关闭回调，不需要该回调的继续使用原来接口就可以
         SplashLpCloseListener listener = new SplashLpCloseListener() {
             @Override
@@ -167,6 +198,84 @@ public abstract class SplashBaseActivity extends Activity {
             }
         };
         new SplashAd(this, splashLayout, listener, AdModelUtils.BD_Splash_id, true);
+    }
+
+    /**
+     * 加载开屏广告
+     */
+    private void loadSplashTTAd() {
+        //step3:创建开屏广告请求参数AdSlot,具体参数含义参考文档
+        AdSlot adSlot = new AdSlot.Builder()
+                .setCodeId(AdModelUtils.TT_Splash_id)
+                .setSupportDeepLink(true)
+                .setImageAcceptedSize(1080, 1920)
+                .build();
+
+        splashLayout.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (!mHasLoaded) {
+                    QQKaiping(0);
+                }
+            }
+        }, AD_TIME_OUT);
+
+        TTAdNative mTTAdNative = TTAdSdk.getAdManager().createAdNative(this);
+        //step4:请求广告，调用开屏广告异步请求接口，对请求回调的广告作渲染处理
+        mTTAdNative.loadSplashAd(adSlot, new TTAdNative.SplashAdListener() {
+            @Override
+            @MainThread
+            public void onError(int code, String message) {
+                mHasLoaded = true;
+                QQKaiping(0);
+            }
+
+            @Override
+            @MainThread
+            public void onTimeout() {
+                mHasLoaded = true;
+                QQKaiping(0);
+            }
+
+            @Override
+            @MainThread
+            public void onSplashAdLoad(TTSplashAd ad) {
+                mHasLoaded = true;
+
+                //获取SplashView
+                View view = ad.getSplashView();
+                splashLayout.removeAllViews();
+                //把SplashView 添加到ViewGroup中,注意开屏广告view：width >=70%屏幕宽；height >=50%屏幕宽
+                splashLayout.addView(view);
+                //设置不开启开屏广告倒计时功能以及不显示跳过按钮,如果这么设置，您需要自定义倒计时逻辑
+                //ad.setNotAllowSdkCountdown();
+
+                //设置SplashView的交互监听器
+                ad.setSplashInteractionListener(new TTSplashAd.AdInteractionListener() {
+                    @Override
+                    public void onAdClicked(View view, int type) {
+                        Log.d(TAG, "onAdClicked");
+                    }
+
+                    @Override
+                    public void onAdShow(View view, int type) {
+                        Log.d(TAG, "onAdShow");
+                    }
+
+                    @Override
+                    public void onAdSkip() {
+                        Log.d(TAG, "onAdSkip");
+                        next();
+                    }
+
+                    @Override
+                    public void onAdTimeOver() {
+                        Log.d(TAG, "onAdTimeOver");
+                        next();
+                    }
+                });
+            }
+        }, AD_TIME_OUT);
     }
 
     /**

@@ -30,5 +30,8 @@ public static ** valueOf(java.lang.String);
 -keep class com.baidu.mobads.*.** { *; }
 
 
+
 -keep class com.bytedance.sdk.openadsdk.** { *; }
+-keep class com.androidquery.callback.** {*;}
 -keep public interface com.bytedance.sdk.openadsdk.downloadnew.** {*;}
+-keep class com.ss.sys.ces.* {*;}

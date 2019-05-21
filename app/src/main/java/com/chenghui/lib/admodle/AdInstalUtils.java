@@ -268,7 +268,7 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
     }
 
     private void adviewInstal() {
-        AdBannerUtils.initAd(activity);
+        AdBannerUtils.initBDAd(activity);
     }
 
     public void ondetory() {
