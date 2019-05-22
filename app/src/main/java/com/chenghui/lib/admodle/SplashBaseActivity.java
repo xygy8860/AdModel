@@ -62,6 +62,9 @@ public abstract class SplashBaseActivity extends Activity {
     //开屏广告是否已经加载
     private boolean mHasLoaded;
 
+    //头条开屏强制跳转
+    private boolean mForceJump;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -115,7 +118,7 @@ public abstract class SplashBaseActivity extends Activity {
     protected void onPause() {
         super.onPause();
 
-        if (mHasLoaded) { // 如果是头条开屏，那么因为倒计时暂停，那么返回后必须强制跳转主页
+        if (mForceJump) { // 如果是头条开屏，那么因为倒计时暂停，那么返回后必须强制跳转主页
             canJump = true;
         } else {
             canJump = false;
@@ -241,6 +244,7 @@ public abstract class SplashBaseActivity extends Activity {
             @MainThread
             public void onSplashAdLoad(TTSplashAd ad) {
                 mHasLoaded = true;
+                mForceJump = true;
 
                 //获取SplashView
                 View view = ad.getSplashView();
