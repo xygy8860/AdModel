@@ -22,7 +22,7 @@ android {
 
     productFlavors {
         adapp {
-            applicationId "com.chenghui.study.c"
+            applicationId "com.chenghui.jiaxiao.motorTest"
         }
     }
 

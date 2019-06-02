@@ -13,8 +13,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.baidu.mobads.SplashAd;
-import com.baidu.mobads.SplashLpCloseListener;
 import com.bytedance.sdk.openadsdk.AdSlot;
 import com.bytedance.sdk.openadsdk.TTAdNative;
 import com.bytedance.sdk.openadsdk.TTAdSdk;
@@ -90,12 +88,6 @@ public abstract class SplashBaseActivity extends Activity {
             } catch (Exception e) {
                 QQKaiping(0);
             }
-        } else if (rand < AdModelUtils.TT_Splash_rate + AdModelUtils.BD_Splash_rate) { // 50 < rand < 50 + 30
-            try {
-                loadSplashAd();
-            } catch (Exception e) {
-                QQKaiping(0);
-            }
         } else {
             if (AdModelUtils.isSplashFirst) {
                 QQKaiping(0);
@@ -162,45 +154,6 @@ public abstract class SplashBaseActivity extends Activity {
             return true;
         }
         return super.onKeyDown(keyCode, event);
-    }
-
-    /**
-     * 加载 百度开屏广告
-     */
-    private void loadSplashAd() {
-        AdBannerUtils.initBDAd(this);
-        // 增加lp页面关闭回调，不需要该回调的继续使用原来接口就可以
-        SplashLpCloseListener listener = new SplashLpCloseListener() {
-            @Override
-            public void onLpClosed() {
-                //Toast.makeText(RSplashActivity.this,"lp页面关闭",Toast.LENGTH_SHORT).show();
-                //Log.i("RSplashActivity", "onAdDismissed");
-            }
-
-            @Override
-            public void onAdDismissed() {
-                //Log.i("RSplashActivity", "onAdDismissed");
-                next(); // 跳转至您的应用主界面
-            }
-
-            @Override
-            public void onAdFailed(String arg0) {
-                //Log.i("RSplashActivity", arg0);
-                QQKaiping(0);
-            }
-
-            @Override
-            public void onAdPresent() {
-                //Log.i("RSplashActivity", "onAdPresent");
-            }
-
-            @Override
-            public void onAdClick() {
-                //Log.i("RSplashActivity", "onAdClick");
-                // 设置开屏可接受点击时，该回调可用
-            }
-        };
-        new SplashAd(this, splashLayout, listener, AdModelUtils.BD_Splash_id, true);
     }
 
     /**
