@@ -35,9 +35,9 @@ public class AdModelUtils {
 
 
     // 横幅广告控制几率 默认百度100%
-    public static int BD_Banner_rate = 100;
+    public static int BD_Banner_rate = 0;
     public static int TT_Banner_rate = 0;
-    public static int GDT_Banner_rate = 0;
+    public static int GDT_Banner_rate = 100;
 
     // 开屏广告控制几率 默认头条100%
     public static int BD_Splash_rate = 0;

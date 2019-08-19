@@ -9,15 +9,19 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.bytedance.sdk.openadsdk.AdSlot;
+import com.bytedance.sdk.openadsdk.TTAdConstant;
 import com.bytedance.sdk.openadsdk.TTAdDislike;
 import com.bytedance.sdk.openadsdk.TTAdNative;
 import com.bytedance.sdk.openadsdk.TTAdSdk;
-import com.bytedance.sdk.openadsdk.TTBannerAd;
+import com.bytedance.sdk.openadsdk.TTAppDownloadListener;
+import com.bytedance.sdk.openadsdk.TTNativeExpressAd;
 import com.qq.e.ads.banner.ADSize;
 import com.qq.e.ads.banner.BannerADListener;
 import com.qq.e.ads.banner.BannerView;
 import com.qq.e.comm.util.AdError;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -26,6 +30,8 @@ import java.util.Random;
 public class AdBannerUtils {
 
     private static BannerView bv;
+    private static List<TTNativeExpressAd> mTTAdList = new ArrayList<>();
+    private static TTAdNative mTTAdNative;
 
 
     public static void initBanner(ViewGroup layout, ViewGroup gdt, Activity context) {
@@ -34,7 +40,7 @@ public class AdBannerUtils {
 
         int rand = random.nextInt(100);
         if (rand < AdModelUtils.TT_Banner_rate) {
-            loadBannerTTAd(layout, gdt, context);
+            loadExpressAd(layout, gdt, context);
         } else {
             gdtBanner(gdt, layout, context);
         }
@@ -125,59 +131,126 @@ public class AdBannerUtils {
         return false;
     }
 
-    private static void loadBannerTTAd(final ViewGroup bannerContainer, final ViewGroup adviewLayout, final Activity activity) {
+    private static void loadExpressAd(final ViewGroup banner, final ViewGroup adviewLayout, final Activity activity) {
+        banner.removeAllViews();
+
+        final ViewGroup bannerContainer = new FrameLayout(activity);
+        banner.addView(bannerContainer);
+
+
         //step4:创建广告请求参数AdSlot,具体参数含义参考文档
         AdSlot adSlot = new AdSlot.Builder()
                 .setCodeId(AdModelUtils.TT_Banner_id) //广告位id
                 .setSupportDeepLink(true)
+                .setAdCount(1) //请求广告数量为1到3条
+                .setExpressViewAcceptedSize(getWidth4Dp(activity), 60) //期望模板广告view的size,单位dp
                 .setImageAcceptedSize(600, 150)
                 .build();
+        mTTAdNative = TTAdSdk.getAdManager().createAdNative(activity);
         //step5:请求广告，对请求回调的广告作渲染处理
-        TTAdNative mTTAdNative = TTAdSdk.getAdManager().createAdNative(activity);
-        mTTAdNative.loadBannerAd(adSlot, new TTAdNative.BannerAdListener() {
-
+        mTTAdNative.loadBannerExpressAd(adSlot, new TTAdNative.NativeExpressAdListener() {
             @Override
             public void onError(int code, String message) {
-                gdtBanner(bannerContainer, adviewLayout, activity);
+                banner.removeAllViews();
+                gdtBanner(banner, adviewLayout, activity);
             }
 
             @Override
-            public void onBannerAdLoad(final TTBannerAd ad) {
-                if (ad == null) {
+            public void onNativeExpressAdLoad(List<TTNativeExpressAd> ads) {
+                if (ads == null || ads.size() == 0) {
                     return;
                 }
-                View bannerView = ad.getBannerView();
-                if (bannerView == null) {
-                    return;
-                }
-                //设置轮播的时间间隔  间隔在30s到120秒之间的值，不设置默认不轮播
-                ad.setSlideIntervalTime(30 * 1000);
-                bannerContainer.removeAllViews();
-
-                FrameLayout frameLayout = new FrameLayout(activity);
-                ViewGroup.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                frameLayout.setLayoutParams(params);
-                frameLayout.addView(bannerView);
-
-                bannerContainer.addView(frameLayout);
-                //（可选）设置下载类广告的下载监听
-                //bindDownloadListener(ad);
-                //在banner中显示网盟提供的dislike icon，有助于广告投放精准度提升
-                ad.setShowDislikeIcon(new TTAdDislike.DislikeInteractionCallback() {
-                    @Override
-                    public void onSelected(int position, String value) {
-                        //TToast.show(mContext, "点击 " + value);
-                        //用户选择不喜欢原因后，移除广告展示
-                        bannerContainer.removeAllViews();
-                    }
-
-                    @Override
-                    public void onCancel() {
-                        //TToast.show(mContext, "点击取消 ");
-                    }
-                });
+                TTNativeExpressAd mTTAd = ads.get(0);
+                mTTAdList.add(mTTAd);
+                mTTAd.setSlideIntervalTime(30 * 1000);
+                bindAdListener(mTTAd, bannerContainer, activity);
+                //startTime = System.currentTimeMillis();
+                mTTAd.render();
             }
         });
+    }
+
+    private static void bindAdListener(TTNativeExpressAd ad, final ViewGroup bannerContainer, Activity activity) {
+        ad.setExpressInteractionListener(new TTNativeExpressAd.ExpressAdInteractionListener() {
+            @Override
+            public void onAdClicked(View view, int type) {
+            }
+
+            @Override
+            public void onAdShow(View view, int type) {
+            }
+
+            @Override
+            public void onRenderFail(View view, String msg, int code) {
+            }
+
+            @Override
+            public void onRenderSuccess(View view, float width, float height) {
+                bannerContainer.removeAllViews();
+                bannerContainer.addView(view);
+            }
+        });
+        //dislike设置
+        //使用默认模板中默认dislike弹出样式
+        ad.setDislikeCallback(activity, new TTAdDislike.DislikeInteractionCallback() {
+            @Override
+            public void onSelected(int position, String value) {
+                //用户选择不喜欢原因后，移除广告展示
+                bannerContainer.removeAllViews();
+            }
+
+            @Override
+            public void onCancel() {
+                //TToast.show(mContext, "点击取消 ");
+            }
+        });
+        if (ad.getInteractionType() != TTAdConstant.INTERACTION_TYPE_DOWNLOAD) {
+            return;
+        }
+        ad.setDownloadListener(new TTAppDownloadListener() {
+            @Override
+            public void onIdle() {
+
+            }
+
+            @Override
+            public void onDownloadActive(long l, long l1, String s, String s1) {
+
+            }
+
+            @Override
+            public void onDownloadPaused(long l, long l1, String s, String s1) {
+
+            }
+
+            @Override
+            public void onDownloadFailed(long l, long l1, String s, String s1) {
+
+            }
+
+            @Override
+            public void onDownloadFinished(long l, String s, String s1) {
+
+            }
+
+            @Override
+            public void onInstalled(String s, String s1) {
+
+            }
+        });
+    }
+
+
+    /**
+     * px 转换成 dp
+     *
+     * @param context 上下文对象
+     * @return
+     */
+    public static int getWidth4Dp(Activity context) {
+        int screenWidth = context.getWindowManager().getDefaultDisplay().getWidth(); // 屏幕宽（像素，如：480px）
+        final float scale = context.getResources().getDisplayMetrics().density;
+        return (int) (screenWidth / scale + 0.5f);
     }
 
 
