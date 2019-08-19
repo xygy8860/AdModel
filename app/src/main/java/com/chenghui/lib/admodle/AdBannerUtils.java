@@ -143,7 +143,7 @@ public class AdBannerUtils {
                 .setCodeId(AdModelUtils.TT_Banner_id) //广告位id
                 .setSupportDeepLink(true)
                 .setAdCount(1) //请求广告数量为1到3条
-                .setExpressViewAcceptedSize(getWidth4Dp(activity), 60) //期望模板广告view的size,单位dp
+                .setExpressViewAcceptedSize(getWidth4Dp(activity), 55) //期望模板广告view的size,单位dp
                 .setImageAcceptedSize(600, 150)
                 .build();
         mTTAdNative = TTAdSdk.getAdManager().createAdNative(activity);
