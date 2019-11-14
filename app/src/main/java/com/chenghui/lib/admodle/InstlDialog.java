@@ -19,7 +19,7 @@ public class InstlDialog {
 
     private Activity context;
     private AlertDialog dialog;
-    private RelativeLayout layout;
+    public RelativeLayout layout;
     private ImageView close;
     private int mRand = 5; // 点击几率
     private AdInstalUtils.OnLoadAdListener listener;
@@ -64,6 +64,18 @@ public class InstlDialog {
         }
 
         layout.addView(nativeExpressADView);
+    }
+
+    public void setNativeAd(View view) {
+        if (!layout.isShown()) {
+            layout.setVisibility(View.VISIBLE);
+        }
+
+        if (layout.getChildCount() > 0) {
+            layout.removeAllViews();
+        }
+
+        layout.addView(view);
     }
 
     public void setCloseListener() {

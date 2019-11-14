@@ -4,7 +4,22 @@ import android.app.Activity;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bytedance.sdk.openadsdk.AdSlot;
+import com.bytedance.sdk.openadsdk.TTAdConstant;
+import com.bytedance.sdk.openadsdk.TTAdNative;
+import com.bytedance.sdk.openadsdk.TTAdSdk;
+import com.bytedance.sdk.openadsdk.TTFeedAd;
+import com.bytedance.sdk.openadsdk.TTImage;
+import com.bytedance.sdk.openadsdk.TTNativeAd;
 import com.qq.e.ads.cfg.VideoOption;
 import com.qq.e.ads.interstitial.AbstractInterstitialADListener;
 import com.qq.e.ads.interstitial.InterstitialAD;
@@ -39,6 +54,7 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
     private boolean isVertical;
     private InstalCarouselDialog mCarouselDialog;
     private OnLoadAdListener listener;
+    private TTAdNative mTTAdNative;
 
     // 横屏
     public AdInstalUtils(Activity activity, int mRand, OnLoadAdListener listener) {
@@ -84,7 +100,186 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
         }
     }
 
+
     public void refreshAd(int count) {
+        Random random = new Random();
+        int rand = random.nextInt(100);
+        //没有权限
+        if (!AdModelUtils.isHavePermissions(activity) || rand < AdModelUtils.TT_Native_rate) {  //如果落在头条范围内，开屏头条 rand < 50
+            refreshTTAd(0);
+        } else {
+            refreshAd(0);
+        }
+    }
+
+    // 加载TT广告
+    private void refreshTTAd(int count) {
+        this.count = count;
+        mTTAdNative = TTAdSdk.getAdManager().createAdNative(activity);
+        loadListAd();
+    }
+
+    /**
+     * 加载feed广告
+     */
+    private void loadListAd() {
+        Random random = new Random();
+        int rand = random.nextInt(100);
+
+        //step4:创建feed广告请求类型参数AdSlot,具体参数含义参考文档
+        AdSlot adSlot = new AdSlot.Builder()
+                .setCodeId(rand < AdModelUtils.TT_video_rate ? AdModelUtils.TT_video_id : AdModelUtils.TT_Native_id)
+                .setSupportDeepLink(true)
+                .setImageAcceptedSize(640, 320)
+                .setAdCount(1) //请求广告数量为1到3条
+                .build();
+        //step5:请求广告，调用feed广告异步请求接口，加载到广告后，拿到广告素材自定义渲染
+        mTTAdNative.loadFeedAd(adSlot, new TTAdNative.FeedAdListener() {
+            @Override
+            public void onError(int code, String message) {
+                Log.e("123", "error:" + message);
+                refreshAd(0);
+            }
+
+            @Override
+            public void onFeedAdLoad(List<TTFeedAd> ads) {
+
+                Log.e("123", "onFeedAdLoad:");
+
+                if (ads == null || ads.isEmpty()) {
+                    return;
+                }
+
+                TTFeedAd ad = ads.get(0);
+                ad.setActivityForDownloadApp(activity);
+
+                if (dialog == null) {
+                    dialog = new InstlDialog(activity, isShowClosedBtn, mRand, listener);
+                }
+
+                dialog.show();
+
+                View convertView = LayoutInflater.from(activity).inflate(R.layout.admodel_large_pic, dialog.layout, false);
+                AdNativeUtils.AdViewHolder adViewHolder = new AdNativeUtils.AdViewHolder();
+                adViewHolder.mTitle = (TextView) convertView.findViewById(R.id.tv_listitem_ad_title);
+                adViewHolder.mDescription = (TextView) convertView.findViewById(R.id.tv_listitem_ad_desc);
+                adViewHolder.mSource = (TextView) convertView.findViewById(R.id.tv_listitem_ad_source);
+                adViewHolder.mLargeImage = (ImageView) convertView.findViewById(R.id.iv_listitem_image);
+                adViewHolder.mIcon = (ImageView) convertView.findViewById(R.id.iv_listitem_icon);
+                adViewHolder.mDislike = (ImageView) convertView.findViewById(R.id.iv_listitem_dislike);
+                adViewHolder.mCreativeButton = (Button) convertView.findViewById(R.id.btn_listitem_creative);
+                adViewHolder.videoView = (FrameLayout) convertView.findViewById(R.id.iv_listitem_video);
+
+                dialog.setNativeAd(convertView);
+
+                bindData(convertView, adViewHolder, ad);
+                if (ad.getImageMode() == TTAdConstant.IMAGE_MODE_LARGE_IMG && ad.getImageList() != null && !ad.getImageList().isEmpty()) {
+                    TTImage image = ad.getImageList().get(0);
+                    if (image != null && image.isValid()) {
+                        Glide.with(activity).load(image.getImageUrl()).into(adViewHolder.mLargeImage);
+                    }
+                } else if (ad.getImageMode() == TTAdConstant.IMAGE_MODE_VIDEO) {
+                    //获取视频播放view,该view SDK内部渲染，在媒体平台可配置视频是否自动播放等设置。
+                    View video = ad.getAdView();
+                    if (video != null) {
+                        if (video.getParent() == null) {
+                            adViewHolder.videoView.removeAllViews();
+                            adViewHolder.videoView.addView(video);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    private void bindData(View convertView, final AdNativeUtils.AdViewHolder adViewHolder, TTFeedAd ad) {
+        //设置dislike弹窗，这里展示自定义的dialog
+        //bindDislikeCustom(adViewHolder.mDislike, ad);
+
+        //可以被点击的view, 也可以把convertView放进来意味item可被点击
+        List<View> clickViewList = new ArrayList<>();
+        clickViewList.add(convertView);
+        //触发创意广告的view（点击下载或拨打电话）
+        List<View> creativeViewList = new ArrayList<>();
+        creativeViewList.add(adViewHolder.mCreativeButton);
+        //如果需要点击图文区域也能进行下载或者拨打电话动作，请将图文区域的view传入
+        creativeViewList.add(convertView);
+        //重要! 这个涉及到广告计费，必须正确调用。convertView必须使用ViewGroup。
+        ad.registerViewForInteraction((ViewGroup) convertView, clickViewList, creativeViewList, new TTNativeAd.AdInteractionListener() {
+            @Override
+            public void onAdClicked(View view, TTNativeAd ad) {
+                /*if (ad != null) {
+                    TToast.show(mContext, "广告" + ad.getTitle() + "被点击");
+                }*/
+            }
+
+            @Override
+            public void onAdCreativeClick(View view, TTNativeAd ad) {
+                /*if (ad != null) {
+                    TToast.show(mContext, "广告" + ad.getTitle() + "被创意按钮被点击");
+                }*/
+            }
+
+            @Override
+            public void onAdShow(TTNativeAd ad) {
+                /*if (ad != null) {
+                    TToast.show(mContext, "广告" + ad.getTitle() + "展示");
+                }*/
+            }
+        });
+        adViewHolder.mTitle.setText(ad.getTitle()); //title为广告的简单信息提示
+        adViewHolder.mDescription.setText(ad.getDescription()); //description为广告的较长的说明
+        adViewHolder.mSource.setText(ad.getSource() == null ? "广告来源" : ad.getSource());
+        TTImage icon = ad.getIcon();
+        if (icon != null && icon.isValid()) {
+            Glide.with(activity).load(icon.getImageUrl()).into(adViewHolder.mIcon);
+        }
+        Button adCreativeButton = adViewHolder.mCreativeButton;
+        switch (ad.getInteractionType()) {
+            case TTAdConstant.INTERACTION_TYPE_DOWNLOAD:
+                //如果初始化ttAdManager.createAdNative(getApplicationContext())没有传入activity 则需要在此传activity，否则影响使用Dislike逻辑
+                if (activity instanceof Activity) {
+                    ad.setActivityForDownloadApp((Activity) activity);
+                }
+                adCreativeButton.setVisibility(View.VISIBLE);
+                /*if (adViewHolder.mStopButton != null) {
+                    adViewHolder.mStopButton.setVisibility(View.VISIBLE);
+                }
+                adViewHolder.mRemoveButton.setVisibility(View.VISIBLE);*/
+                //bindDownloadListener(adCreativeButton, adViewHolder, ad);
+                //绑定下载状态控制器
+                //bindDownLoadStatusController(adViewHolder, ad);
+                break;
+            case TTAdConstant.INTERACTION_TYPE_DIAL:
+                adCreativeButton.setVisibility(View.VISIBLE);
+                adCreativeButton.setText("立即拨打");
+                /*if (adViewHolder.mStopButton != null) {
+                    adViewHolder.mStopButton.setVisibility(View.GONE);
+                }
+                adViewHolder.mRemoveButton.setVisibility(View.GONE);*/
+                break;
+            case TTAdConstant.INTERACTION_TYPE_LANDING_PAGE:
+            case TTAdConstant.INTERACTION_TYPE_BROWSER:
+//                    adCreativeButton.setVisibility(View.GONE);
+                adCreativeButton.setVisibility(View.VISIBLE);
+                adCreativeButton.setText("查看详情");
+                /*if (adViewHolder.mStopButton != null) {
+                    adViewHolder.mStopButton.setVisibility(View.GONE);
+                }
+                adViewHolder.mRemoveButton.setVisibility(View.GONE);*/
+                break;
+            default:
+                adCreativeButton.setVisibility(View.GONE);
+                /*if (adViewHolder.mStopButton != null) {
+                    adViewHolder.mStopButton.setVisibility(View.GONE);
+                }
+                adViewHolder.mRemoveButton.setVisibility(View.GONE);*/
+                //TToast.show(mContext, "交互类型异常");
+        }
+    }
+
+
+    private void refreshGdtAd(int count) {
         this.count = count;
 
         try {
@@ -108,7 +303,7 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
         Log.i(TAG, String.format("onNoAD, error code: %d, error msg: %s", adError.getErrorCode(), adError.getErrorMsg()));
 
         if (count < 2) {
-            refreshAd(count + 1);
+            refreshGdtAd(count + 1);
         } else {
             showGdtInshal();
         }

@@ -1,5 +1,6 @@
 package com.chenghui.admodel.test;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.ViewGroup;
@@ -7,6 +8,7 @@ import android.view.ViewGroup;
 import com.chenghui.lib.admodle.AdBannerUtils;
 import com.chenghui.lib.admodle.AdInstalUtils;
 import com.chenghui.lib.admodle.AdModelUtils;
+import com.chenghui.lib.admodle.AdNativeUtils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,14 +37,16 @@ public class MainActivity extends AppCompatActivity {
                 if (adInstalUtils == null) {
                     adInstalUtils = new AdInstalUtils(MainActivity.this, AdModelUtils.NativeId_Img, 0, null);
                 }
-                adInstalUtils.refreshAd(0);
+                adInstalUtils.refreshGdtAd(0);
             }
         });*/
 
         AdBannerUtils.initAd(this);
         ViewGroup layout = findViewById(R.id.adlayout);
-        AdBannerUtils.initBanner(layout, layout, this);
+        //new AdNativeUtils(this, layout);
 
+        adInstalUtils = new AdInstalUtils(this, 0, null);
+        adInstalUtils.refreshAd(0);
     }
 
     @Override

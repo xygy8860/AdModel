@@ -82,7 +82,7 @@ public abstract class SplashBaseActivity extends Activity {
          * 例如：TT=50 BD=30
          *
          */
-        if (rand < AdModelUtils.TT_Splash_rate) {  //如果落在头条范围内，开屏头条 rand < 50
+        if (!AdModelUtils.isHavePermissions(this) || rand < AdModelUtils.TT_Splash_rate) {  //如果落在头条范围内，开屏头条 rand < 50
             try {
                 loadSplashTTAd();
             } catch (Exception e) {

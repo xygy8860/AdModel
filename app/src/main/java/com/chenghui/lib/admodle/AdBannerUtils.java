@@ -37,9 +37,8 @@ public class AdBannerUtils {
     public static void initBanner(ViewGroup layout, ViewGroup gdt, Activity context) {
 
         Random random = new Random();
-
         int rand = random.nextInt(100);
-        if (rand < AdModelUtils.TT_Banner_rate) {
+        if (!AdModelUtils.isHavePermissions(context) || rand < AdModelUtils.TT_Banner_rate) {
             loadExpressAd(layout, gdt, context);
         } else {
             gdtBanner(gdt, layout, context);
