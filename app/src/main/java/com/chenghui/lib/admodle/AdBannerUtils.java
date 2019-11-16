@@ -15,9 +15,8 @@ import com.bytedance.sdk.openadsdk.TTAdNative;
 import com.bytedance.sdk.openadsdk.TTAdSdk;
 import com.bytedance.sdk.openadsdk.TTAppDownloadListener;
 import com.bytedance.sdk.openadsdk.TTNativeExpressAd;
-import com.qq.e.ads.banner.ADSize;
-import com.qq.e.ads.banner.BannerADListener;
-import com.qq.e.ads.banner.BannerView;
+import com.qq.e.ads.banner2.UnifiedBannerADListener;
+import com.qq.e.ads.banner2.UnifiedBannerView;
 import com.qq.e.comm.util.AdError;
 
 import java.util.ArrayList;
@@ -29,7 +28,7 @@ import java.util.Random;
  */
 public class AdBannerUtils {
 
-    private static BannerView bv;
+    private static UnifiedBannerView bv;
     private static List<TTNativeExpressAd> mTTAdList = new ArrayList<>();
     private static TTAdNative mTTAdNative;
 
@@ -59,25 +58,15 @@ public class AdBannerUtils {
             }
             bannerContainer.removeAllViews();
 
-            bv = new BannerView(activity, ADSize.BANNER, AdModelUtils.APPID, AdModelUtils.BannerPosID);
-            bv.setShowClose(true);
-            bv.setADListener(new BannerADListener() {
-
+            bv = new UnifiedBannerView(activity, AdModelUtils.APPID, AdModelUtils.BannerPosID, new UnifiedBannerADListener() {
                 @Override
                 public void onNoAD(AdError adError) {
-                    //adviewBanner(adviewLayout, bannerContainer, activity, null);
+
                 }
 
                 @Override
-                public void onADReceiv() {
-                }
+                public void onADReceive() {
 
-                @Override
-                public void onADOpenOverlay() {
-                }
-
-                @Override
-                public void onADLeftApplication() {
                 }
 
                 @Override
@@ -94,11 +83,22 @@ public class AdBannerUtils {
                 }
 
                 @Override
-                public void onADCloseOverlay() {
+                public void onADClicked() {
+
                 }
 
                 @Override
-                public void onADClicked() {
+                public void onADLeftApplication() {
+
+                }
+
+                @Override
+                public void onADOpenOverlay() {
+
+                }
+
+                @Override
+                public void onADCloseOverlay() {
 
                 }
             });
