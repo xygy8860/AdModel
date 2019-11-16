@@ -33,32 +33,32 @@ public class AdBannerUtils {
     private static TTAdNative mTTAdNative;
 
 
-    public static void initBanner(ViewGroup layout, ViewGroup gdt, Activity context) {
+    public static void initBanner(ViewGroup ttLayout, ViewGroup gdt, Activity context) {
 
         Random random = new Random();
         int rand = random.nextInt(100);
         if (!AdModelUtils.isHavePermissions(context) || rand < AdModelUtils.TT_Banner_rate) {
-            loadExpressAd(layout, gdt, context);
+            loadExpressAd(ttLayout, gdt, context);
         } else {
-            gdtBanner(gdt, layout, context);
+            gdtBanner(gdt, context);
         }
     }
 
     /**
      * 广点通 banner 广告
      *
-     * @param bannerContainer
+     * @param gdtLayout
      * @param activity
      */
-    private static void gdtBanner(final ViewGroup bannerContainer, final ViewGroup adviewLayout, final Activity activity) {
+    private static void gdtBanner(final ViewGroup gdtLayout, final Activity activity) {
         try {
             // 清除加载的广告
-            if (!isNetworkAvailable(activity) || bannerContainer == null) {
+            if (!isNetworkAvailable(activity) || gdtLayout == null) {
                 return;
             }
-            bannerContainer.removeAllViews();
+            gdtLayout.removeAllViews();
 
-            bv = new UnifiedBannerView(activity, AdModelUtils.APPID, AdModelUtils.BannerPosID, new UnifiedBannerADListener() {
+            bv = new UnifiedBannerView(activity, AdModelUtils.APPID, AdModelUtils.BannerPosID_2, new UnifiedBannerADListener() {
                 @Override
                 public void onNoAD(AdError adError) {
 
@@ -76,7 +76,7 @@ public class AdBannerUtils {
 
                 @Override
                 public void onADClosed() {
-                    bannerContainer.removeAllViews();
+                    gdtLayout.removeAllViews();
                     if (bv != null) {
                         bv.destroy();
                     }
@@ -102,7 +102,7 @@ public class AdBannerUtils {
 
                 }
             });
-            bannerContainer.addView(bv);
+            gdtLayout.addView(bv);
             bv.loadAD();
         } catch (Exception e) {
             // 异步线程问题
@@ -130,11 +130,11 @@ public class AdBannerUtils {
         return false;
     }
 
-    private static void loadExpressAd(final ViewGroup banner, final ViewGroup adviewLayout, final Activity activity) {
-        banner.removeAllViews();
+    private static void loadExpressAd(final ViewGroup ttLayout, final ViewGroup gdtLayout, final Activity activity) {
+        ttLayout.removeAllViews();
 
         final ViewGroup bannerContainer = new FrameLayout(activity);
-        banner.addView(bannerContainer);
+        ttLayout.addView(bannerContainer);
 
 
         //step4:创建广告请求参数AdSlot,具体参数含义参考文档
@@ -150,8 +150,8 @@ public class AdBannerUtils {
         mTTAdNative.loadBannerExpressAd(adSlot, new TTAdNative.NativeExpressAdListener() {
             @Override
             public void onError(int code, String message) {
-                banner.removeAllViews();
-                gdtBanner(banner, adviewLayout, activity);
+                ttLayout.removeAllViews();
+                gdtBanner(gdtLayout, activity);
             }
 
             @Override

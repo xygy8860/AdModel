@@ -13,7 +13,7 @@ import java.util.Random;
 /**
  * @author xygy
  * @version 2016-3-17 下午8:31:43
- *          类说明:插屏对话框
+ * 类说明:插屏对话框
  */
 public class InstlDialog {
 

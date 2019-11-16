@@ -221,6 +221,10 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
                 /*if (ad != null) {
                     TToast.show(mContext, "广告" + ad.getTitle() + "被点击");
                 }*/
+
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
             }
 
             @Override
@@ -228,6 +232,10 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
                 /*if (ad != null) {
                     TToast.show(mContext, "广告" + ad.getTitle() + "被创意按钮被点击");
                 }*/
+
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
             }
 
             @Override
@@ -395,11 +403,11 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
 
         if (isVertical) {
             if (mCarouselDialog != null) {
-                mCarouselDialog.setCloseListener();
+                mCarouselDialog.dismiss();
             }
         } else {
             if (dialog != null) {
-                dialog.setCloseListener();
+                dialog.dismiss();
             }
         }
     }
@@ -530,7 +538,10 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
         ad.setExpressInteractionListener(new TTNativeExpressAd.ExpressAdInteractionListener() {
             @Override
             public void onAdClicked(View view, int type) {
-                //TToast.show(mContext, "广告被点击");
+                Log.e("123", "广告被点击");
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
             }
 
             @Override

@@ -86,7 +86,7 @@ public class AdModelUtils {
     public static String NativeId_img_txt = ""; // 上图下文  1080037139439140
     public static String NativeId_leftImg_rightTxt = ""; // 左图右文
     public static String NativeId_Horizontal_Img = ""; // 纯图片 横图
-    public static String BannerPosID = "";
+    public static String BannerPosID_2 = ""; // 2.0banner
     public static String InstalPosID = "";
 
     public static int mRand = 95; // 控制点击几率
