@@ -45,7 +45,7 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/gdt_file_path" />
+                android:resource="@xml/admodel_gdt_file_path" />
         </provider>
         
         <provider
@@ -61,8 +61,7 @@
             android:name="com.bytedance.sdk.openadsdk.multipro.TTMultiProvider"
             android:authorities="${applicationId}.TTMultiProvider"
             android:exported="false" />
-    
-    
+        
     </application>
     
     <!-- SDK 相关声明 -->
