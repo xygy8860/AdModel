@@ -19,7 +19,6 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-
     }
 
     sourceSets {
@@ -43,7 +42,7 @@ android {
 
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
-    api fileTree(include: ['*.aar'], dir: 'libs')
+    implementation fileTree(include: ['*.aar'], dir: 'libs')
 
     api 'pl.droidsonroids.gif:android-gif-drawable:1.2.6'
     api 'com.android.support:appcompat-v7:28.0.0'
