@@ -40,13 +40,6 @@ public abstract class SplashBaseActivity extends Activity {
     protected ViewGroup splashLayout; // 必须在子类赋值
     protected TextView mJumpBtn; // 必须在子类赋值
 
-    // 测试id
-//    protected String appId = "1106414865";
-//    protected String splashID = "4050220679022649";
-//    protected String nativeId = "5080737128844271";
-//    protected int mRand = 95; // 控制点击几率
-//    protected boolean isSplashFirst = true; // true:开屏优先  false:原生优先
-
     private NativeExpressADView nativeExpressADView;
     private NativeExpressAD nativeExpressAD;
 
@@ -63,11 +56,13 @@ public abstract class SplashBaseActivity extends Activity {
     //头条开屏强制跳转
     private boolean mForceJump;
 
+    // 是否已经拉取过广告
+    private int mGetAdFlag = 0; // 0:未获取广告 1：已获取一次广告  2：已获取两次广告
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-
 
     /**
      * 初始化参数
@@ -89,11 +84,7 @@ public abstract class SplashBaseActivity extends Activity {
                 QQKaiping(0);
             }
         } else {
-            if (AdModelUtils.isSplashFirst) {
-                QQKaiping(0);
-            } else {
-                refreshAd(0);
-            }
+            QQKaiping(0);
         }
     }
 
@@ -183,14 +174,31 @@ public abstract class SplashBaseActivity extends Activity {
             @MainThread
             public void onError(int code, String message) {
                 mHasLoaded = true;
-                QQKaiping(0);
+
+                if (mGetAdFlag == 0) {
+                    mGetAdFlag++;
+                    QQKaiping(0);
+                } else if (mGetAdFlag == 1) {
+                    mGetAdFlag++;
+                    refreshAd(0);
+                } else {
+                    next();
+                }
             }
 
             @Override
             @MainThread
             public void onTimeout() {
                 mHasLoaded = true;
-                QQKaiping(0);
+                if (mGetAdFlag == 0) {
+                    mGetAdFlag++;
+                    QQKaiping(0);
+                } else if (mGetAdFlag == 1) {
+                    mGetAdFlag++;
+                    refreshAd(0);
+                } else {
+                    next();
+                }
             }
 
             @Override
@@ -242,7 +250,7 @@ public abstract class SplashBaseActivity extends Activity {
      */
     private void QQKaiping(final int count) {
         mJumpBtn.setVisibility(View.VISIBLE);
-        SplashAD splashAD = new SplashAD(this, splashLayout, mJumpBtn,
+        SplashAD splashAD = new SplashAD(this, mJumpBtn,
                 AdModelUtils.APPID, AdModelUtils.SplashID, new SplashADListener() {
             @Override
             public void onADDismissed() {
@@ -252,18 +260,29 @@ public abstract class SplashBaseActivity extends Activity {
             @Override
             public void onNoAD(AdError adError) {
                 String err = adError.getErrorMsg();
-                if (!TextUtils.isEmpty(err) && err.contains("网络类型错误")) {
-                    if (AdModelUtils.isSplashFirst) { // 如果是开屏优先，则无数据请求原生
+
+                //Log.e("123", "err:" + err);
+
+                if ((!TextUtils.isEmpty(err) && err.contains("网络类型错误")) || (!TextUtils.isEmpty(err) && err.contains("102006"))) {
+                    if (mGetAdFlag == 0) {
+                        mGetAdFlag++;
+                        loadSplashTTAd();
+                    } else if (mGetAdFlag == 1) {
+                        mGetAdFlag++;
                         refreshAd(0);
-                    } else { // 如果是原生优先，开屏无数据则跳转主页
+                    } else {
                         next();
                     }
                 } else if (count < 2) {
                     QQKaiping(count + 1);
                 } else {
-                    if (AdModelUtils.isSplashFirst) { // 如果是开屏优先，则无数据请求原生
+                    if (mGetAdFlag == 0) {
+                        mGetAdFlag++;
+                        loadSplashTTAd();
+                    } else if (mGetAdFlag == 1) {
+                        mGetAdFlag++;
                         refreshAd(0);
-                    } else { // 如果是原生优先，开屏无数据则跳转主页
+                    } else {
                         next();
                     }
                 }
@@ -289,6 +308,8 @@ public abstract class SplashBaseActivity extends Activity {
 
             }
         }, 0);
+
+        splashAD.fetchAndShowIn(splashLayout);
     }
 
     protected void splash() {
@@ -313,7 +334,6 @@ public abstract class SplashBaseActivity extends Activity {
         }
     }
 
-
     private void refreshAd(final int count) {
 
         if (count == 0) {
@@ -336,15 +356,15 @@ public abstract class SplashBaseActivity extends Activity {
                     AdModelUtils.NativeId_Img, new NativeExpressAD.NativeExpressADListener() {
                 @Override
                 public void onNoAD(AdError adError) {
+
+                    //Log.e("123", "原生noad" + adError.getErrorMsg());
+
+                    String msg = adError.getErrorMsg();
                     try {
-                        if (count < 3) {
+                        if (count < 3 && !TextUtils.isEmpty(msg) && !msg.contains("102006")) {
                             refreshAd(count + 1);
                         } else {
-                            if (!AdModelUtils.isSplashFirst) {
-                                QQKaiping(0);
-                            } else {
-                                next();
-                            }
+                            next();
                         }
                     } catch (Exception e) {
 
@@ -378,11 +398,7 @@ public abstract class SplashBaseActivity extends Activity {
 
                 @Override
                 public void onRenderFail(NativeExpressADView adView) {
-                    if (!AdModelUtils.isSplashFirst) {
-                        QQKaiping(0);
-                    } else {
-                        splash();
-                    }
+                    next();
                 }
 
                 @Override

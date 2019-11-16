@@ -20,6 +20,7 @@ import com.bytedance.sdk.openadsdk.TTAdSdk;
 import com.bytedance.sdk.openadsdk.TTFeedAd;
 import com.bytedance.sdk.openadsdk.TTImage;
 import com.bytedance.sdk.openadsdk.TTNativeAd;
+import com.bytedance.sdk.openadsdk.TTNativeExpressAd;
 import com.qq.e.ads.cfg.VideoOption;
 import com.qq.e.ads.interstitial.AbstractInterstitialADListener;
 import com.qq.e.ads.interstitial.InterstitialAD;
@@ -116,7 +117,16 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
     private void refreshTTAd(int count) {
         this.count = count;
         mTTAdNative = TTAdSdk.getAdManager().createAdNative(activity);
-        loadListAd();
+
+        Random random = new Random();
+        int rand = random.nextInt(100);
+
+        // 个性化模板比例
+        if (rand < AdModelUtils.TT_Nativie_model_rate) {
+            refreshNativieTTAd();
+        } else {
+            loadListAd();
+        }
     }
 
     /**
@@ -128,7 +138,7 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
 
         //step4:创建feed广告请求类型参数AdSlot,具体参数含义参考文档
         AdSlot adSlot = new AdSlot.Builder()
-                .setCodeId(rand < AdModelUtils.TT_video_rate ? AdModelUtils.TT_video_id : AdModelUtils.TT_Native_id)
+                .setCodeId(rand < AdModelUtils.TT_video_rate ? AdModelUtils.TT_Feed_video_id : AdModelUtils.TT_Feed_image_id)
                 .setSupportDeepLink(true)
                 .setImageAcceptedSize(640, 320)
                 .setAdCount(1) //请求广告数量为1到3条
@@ -485,6 +495,67 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
         void failed();
 
         void closed();
+    }
+
+    // 加载个性化模板广告
+    private void refreshNativieTTAd() {
+        //step4:创建广告请求参数AdSlot,具体参数含义参考文档
+        AdSlot adSlot = new AdSlot.Builder()
+                .setCodeId(AdModelUtils.TT_Feed_model_id) //广告位id
+                .setSupportDeepLink(true)
+                .setAdCount(1) //请求广告数量为1到3条
+                .setExpressViewAcceptedSize(350, 0) //期望模板广告view的size,单位dp
+                .setImageAcceptedSize(640, 320)//这个参数设置即可，不影响模板广告的size
+                .build();
+        //step5:请求广告，对请求回调的广告作渲染处理
+        mTTAdNative.loadNativeExpressAd(adSlot, new TTAdNative.NativeExpressAdListener() {
+            @Override
+            public void onError(int code, String message) {
+
+            }
+
+            @Override
+            public void onNativeExpressAdLoad(List<TTNativeExpressAd> ads) {
+                if (ads == null || ads.size() == 0) {
+                    return;
+                }
+                TTNativeExpressAd mTTAd = ads.get(0);
+                bindAdListener(mTTAd);
+                mTTAd.render();
+            }
+        });
+    }
+
+    private void bindAdListener(TTNativeExpressAd ad) {
+        ad.setExpressInteractionListener(new TTNativeExpressAd.ExpressAdInteractionListener() {
+            @Override
+            public void onAdClicked(View view, int type) {
+                //TToast.show(mContext, "广告被点击");
+            }
+
+            @Override
+            public void onAdShow(View view, int type) {
+                //TToast.show(mContext, "广告展示");
+            }
+
+            @Override
+            public void onRenderFail(View view, String msg, int code) {
+                //Log.e("ExpressView","render fail:"+(System.currentTimeMillis() - startTime));
+                //TToast.show(mContext, msg+" code:"+code);
+            }
+
+            @Override
+            public void onRenderSuccess(View view, float width, float height) {
+                if (dialog == null) {
+                    dialog = new InstlDialog(activity, isShowClosedBtn, mRand, listener);
+                }
+
+                dialog.show();
+                dialog.setNativeAd(view);
+            }
+        });
+        //dislike设置
+        //bindDislike(ad, false);
     }
 
 }

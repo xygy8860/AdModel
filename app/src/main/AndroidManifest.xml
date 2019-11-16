@@ -16,10 +16,10 @@
         <activity android:name="com.kyview.AdActivity" />-->
         
         <!-- AdView SDK for tencent Gdt -->
-        <service
+        <!--<service
             android:name="com.qq.e.comm.DownloadService"
             android:exported="false"></service>
-        <!-- 请开发者注意字母的大小写，ADActivity，而不是 AdActivity -->
+        &lt;!&ndash; 请开发者注意字母的大小写，ADActivity，而不是 AdActivity &ndash;&gt;
         <activity
             android:name="com.qq.e.ads.ADActivity"
             android:configChanges="keyboard|keyboardHidden|orientation"
@@ -31,7 +31,7 @@
         <activity
             android:name="com.qq.e.ads.LandscapeADActivity"
             android:configChanges="keyboard|keyboardHidden|orientation"
-            android:theme="@android:style/Theme.Translucent"></activity>
+            android:theme="@android:style/Theme.Translucent"></activity>-->
         
         <!--<provider-->
         <!--android:name="com.bytedance.sdk.openadsdk.service.TTDownloadProvider"-->
@@ -45,7 +45,7 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/admodel_gdt_file_path" />
+                android:resource="@xml/gdt_file_path" />
         </provider>
         
         <provider
