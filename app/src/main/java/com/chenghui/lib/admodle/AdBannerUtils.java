@@ -151,7 +151,7 @@ public class AdBannerUtils {
             @Override
             public void onError(int code, String message) {
                 ttLayout.removeAllViews();
-                gdtBanner(gdtLayout, activity);
+                //gdtBanner(gdtLayout, activity);
             }
 
             @Override
