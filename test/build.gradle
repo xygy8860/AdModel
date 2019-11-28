@@ -51,4 +51,8 @@ dependencies {
 
     //implementation 'com.github.xygy8860:AdModel:3.0.0'
     implementation project(':app')
+
+    // 以下aar需要配合使用
+    //implementation(name: 'open_ad_sdk', ext: 'aar')
+    //implementation(name: 'GDTSDK.unionNormal.4.100.970', ext: 'aar')
 }

@@ -76,8 +76,7 @@ public class AdModelUtils {
 
     // 原生广告头条比例 默认为0  序列1 分配广点通和头条
     public static int TT_Native_rate = 0;
-    public static int TT_Nativie_model_rate = 100; // 序列2：头条原生中个性化模板的比例  其余为自渲染
-    public static int TT_video_rate = 0; // 序列3：自渲染中 头条原生视频比例
+    public static int TT_Native_model_rate = 100; // 序列2：头条原生中个性化模板混合的比例  其余为视频
 
     public static String APPID = "";
     public static String SplashID = "";
@@ -96,8 +95,7 @@ public class AdModelUtils {
     public static String TT_Splash_id = ""; // 开屏广告id
     public static String TT_Banner_id = "";
     public static String TT_Name = "";
-    public static String TT_Feed_image_id = ""; // 信息流自渲染
-    public static String TT_Feed_video_id = ""; // 信息流自渲染
-    public static String TT_Feed_model_id = ""; // 信息流模板广告
+    public static String TT_native_video_id = ""; // 原生 个性化模板 视频
+    public static String TT_native_id = ""; // 原生 个性化模板 混合
 
 }
