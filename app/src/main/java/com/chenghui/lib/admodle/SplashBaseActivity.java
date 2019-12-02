@@ -158,6 +158,11 @@ public abstract class SplashBaseActivity extends Activity {
                 .setImageAcceptedSize(1080, 1920)
                 .build();
 
+        if (splashLayout == null) {
+            next();
+            return;
+        }
+
         splashLayout.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -166,6 +171,7 @@ public abstract class SplashBaseActivity extends Activity {
                 }
             }
         }, AD_TIME_OUT);
+
 
         TTAdNative mTTAdNative = TTAdSdk.getAdManager().createAdNative(this);
         //step4:请求广告，调用开屏广告异步请求接口，对请求回调的广告作渲染处理
@@ -209,6 +215,11 @@ public abstract class SplashBaseActivity extends Activity {
 
                 //获取SplashView
                 View view = ad.getSplashView();
+                if (view == null || splashLayout == null) {
+                    next();
+                    return;
+                }
+
                 splashLayout.removeAllViews();
                 //把SplashView 添加到ViewGroup中,注意开屏广告view：width >=70%屏幕宽；height >=50%屏幕宽
                 splashLayout.addView(view);
@@ -249,6 +260,11 @@ public abstract class SplashBaseActivity extends Activity {
      * @param count
      */
     private void QQKaiping(final int count) {
+        if (mJumpBtn == null) {
+            next();
+            return;
+        }
+
         mJumpBtn.setVisibility(View.VISIBLE);
         SplashAD splashAD = new SplashAD(this, mJumpBtn,
                 AdModelUtils.APPID, AdModelUtils.SplashID, new SplashADListener() {

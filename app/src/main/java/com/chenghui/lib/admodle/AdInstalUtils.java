@@ -98,7 +98,7 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
         if (!AdModelUtils.isHavePermissions(activity) || rand < AdModelUtils.TT_Native_rate) {  //如果落在头条范围内，开屏头条 rand < 50
             refreshTTAd(0);
         } else {
-            refreshAd(0);
+            refreshGdtAd(0);
         }
     }
 
