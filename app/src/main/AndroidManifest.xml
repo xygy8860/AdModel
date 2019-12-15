@@ -62,6 +62,11 @@
             android:authorities="${applicationId}.TTMultiProvider"
             android:exported="false" />
         
+        <activity
+            android:name=".SplashBaseActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="false" />
+    
     </application>
     
     <!-- SDK 相关声明 -->
