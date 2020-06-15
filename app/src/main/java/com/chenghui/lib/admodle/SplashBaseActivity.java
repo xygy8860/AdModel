@@ -323,6 +323,11 @@ public abstract class SplashBaseActivity extends Activity {
             public void onADExposure() {
 
             }
+
+            @Override
+            public void onADLoaded(long l) {
+
+            }
         }, 0);
 
         splashAD.fetchAndShowIn(splashLayout);
