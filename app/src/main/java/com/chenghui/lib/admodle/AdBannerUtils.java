@@ -191,7 +191,7 @@ public class AdBannerUtils {
         });
         //dislike设置
         //使用默认模板中默认dislike弹出样式
-        ad.setDislikeCallback(activity, new TTAdDislike.DislikeInteractionCallback() {
+        /*ad.setDislikeCallback(activity, new TTAdDislike.DislikeInteractionCallback() {
             @Override
             public void onSelected(int position, String value) {
                 //用户选择不喜欢原因后，移除广告展示
@@ -202,7 +202,27 @@ public class AdBannerUtils {
             public void onCancel() {
                 //TToast.show(mContext, "点击取消 ");
             }
+        });*/
+
+        ad.setDislikeCallback(activity, new TTAdDislike.DislikeInteractionCallback() {
+            @Override
+            public void onSelected(int i, String s) {
+                //用户选择不喜欢原因后，移除广告展示
+                bannerContainer.removeAllViews();
+            }
+
+            @Override
+            public void onCancel() {
+
+            }
+
+            @Override
+            public void onRefuse() {
+
+            }
         });
+
+
         if (ad.getInteractionType() != TTAdConstant.INTERACTION_TYPE_DOWNLOAD) {
             return;
         }

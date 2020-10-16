@@ -259,7 +259,7 @@ public class AdNativeUtils implements NativeExpressAD.NativeExpressADListener {
             }
         });
         //dislike设置
-        bindDislike(ad);
+        //bindDislike(ad);
     }
 
     /**
@@ -280,6 +280,11 @@ public class AdNativeUtils implements NativeExpressAD.NativeExpressADListener {
             @Override
             public void onCancel() {
                 //TToast.show(mContext, "点击取消 ");
+            }
+
+            @Override
+            public void onRefuse() {
+
             }
         });
     }
