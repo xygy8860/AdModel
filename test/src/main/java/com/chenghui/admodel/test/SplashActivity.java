@@ -33,7 +33,9 @@ public class SplashActivity extends SplashBaseActivity {
         AdModelUtils.TT_Splash_id = "817050394";
         AdModelUtils.TT_Name = "C语言学习宝典";
 
-        initAdParams();
+        //initAdParams();
+
+        openMainActivity();
     }
 
 

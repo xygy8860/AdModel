@@ -32,22 +32,13 @@ public class InstalCarouselDialog {
     private DialogCarouselAdapter mAdapter;
 
 
-    private int mRand = 0; // 点击几率
     private AdCarouselFragment.AdCountTimer timer;
     private List<NativeExpressADView> adList;
     private AdInstalUtils.OnLoadAdListener listener;
 
-    /*public InstalCarouselDialog(Activity context, boolean isShowClosedBtn) {
-        this(context, isShowClosedBtn, 0);
-    }
 
-    public InstalCarouselDialog(Activity context, boolean isShowClosedBtn, int mRand) {
-        this(context, isShowClosedBtn, mRand, null);
-    }*/
-
-    public InstalCarouselDialog(Activity context, boolean isShowClosedBtn, int mRand, AdInstalUtils.OnLoadAdListener listener) {
+    public InstalCarouselDialog(Activity context, AdInstalUtils.OnLoadAdListener listener) {
         this.context = context;
-        this.mRand = mRand;
         this.listener = listener;
 
         dialog = new AlertDialog.Builder(context, R.style.admodel_dialog).create();
@@ -62,12 +53,8 @@ public class InstalCarouselDialog {
         mViewPager = (ViewPager) dialog.findViewById(R.id.admodel_carousel_instal_viewpager);
         mLayout = (LinearLayout) dialog.findViewById(R.id.admodel_carousel_instal_layout);
 
-        if (isShowClosedBtn) {
-            close.setVisibility(View.VISIBLE);
-            if (new Random().nextInt(100) > mRand) {
-                setCloseListener();
-            }
-        }
+        close.setVisibility(View.VISIBLE);
+        setCloseListener();
 
         mAdapter = new DialogCarouselAdapter();
         mViewPager.setAdapter(mAdapter);

@@ -21,7 +21,6 @@ public class InstlDialog {
     private AlertDialog dialog;
     public RelativeLayout layout;
     private ImageView close;
-    private int mRand = 5; // 点击几率
     private AdInstalUtils.OnLoadAdListener listener;
 
     /*public InstlDialog(Activity context, boolean isShowClosedBtn) {
@@ -32,50 +31,65 @@ public class InstlDialog {
         this(context, isShowClosedBtn, mRand, null);
     }*/
 
-    public InstlDialog(Activity context, boolean isShowClosedBtn, int mRand, AdInstalUtils.OnLoadAdListener listener) {
-        this.context = context;
-        this.mRand = mRand;
-        this.listener = listener;
+    public InstlDialog(Activity context, AdInstalUtils.OnLoadAdListener listener) {
+        try {
+            this.context = context;
+            this.listener = listener;
 
-        dialog = new AlertDialog.Builder(context, R.style.admodel_dialog).create();
-        dialog.show();
-        dialog.getWindow().setContentView(R.layout.admodel_dialog_instal);
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.setCancelable(false);
+            dialog = new AlertDialog.Builder(context, R.style.admodel_dialog).create();
+            dialog.show();
+            dialog.getWindow().setContentView(R.layout.admodel_dialog_instal);
+            dialog.setCanceledOnTouchOutside(false);
+            dialog.setCancelable(false);
 
-        layout = (RelativeLayout) dialog.findViewById(R.id.admodel_instl_layout);
-        close = (ImageView) dialog.findViewById(R.id.admodel_instl_close);
+            layout = (RelativeLayout) dialog.findViewById(R.id.admodel_instl_layout);
+            close = (ImageView) dialog.findViewById(R.id.admodel_instl_close);
 
-        if (isShowClosedBtn) {
             close.setVisibility(View.VISIBLE);
-            if (new Random().nextInt(100) > mRand) {
-                setCloseListener();
-            }
+            setCloseListener();
+        } catch (Exception e) {
+
         }
     }
 
     public void setNativeAd(NativeExpressADView nativeExpressADView) {
-        if (!layout.isShown()) {
-            layout.setVisibility(View.VISIBLE);
-        }
+        try {
+            if (layout == null) {
+                return;
+            }
 
-        if (layout.getChildCount() > 0) {
-            layout.removeAllViews();
-        }
+            if (!layout.isShown()) {
+                layout.setVisibility(View.VISIBLE);
+            }
 
-        layout.addView(nativeExpressADView);
+            if (layout.getChildCount() > 0) {
+                layout.removeAllViews();
+            }
+
+            layout.addView(nativeExpressADView);
+        } catch (Exception e) {
+
+        }
     }
 
     public void setNativeAd(View view) {
-        if (!layout.isShown()) {
-            layout.setVisibility(View.VISIBLE);
-        }
+        try {
+            if (layout == null) {
+                return;
+            }
 
-        if (layout.getChildCount() > 0) {
-            layout.removeAllViews();
-        }
+            if (!layout.isShown()) {
+                layout.setVisibility(View.VISIBLE);
+            }
 
-        layout.addView(view);
+            if (layout.getChildCount() > 0) {
+                layout.removeAllViews();
+            }
+
+            layout.addView(view);
+        } catch (Exception e) {
+
+        }
     }
 
     public void setCloseListener() {
@@ -88,24 +102,36 @@ public class InstlDialog {
     }
 
     public void dismissOnly() {
-        dialog.dismiss();
+        try {
+            dialog.dismiss();
+        } catch (Exception e) {
+
+        }
     }
 
     public void dismiss() {
-        if (layout != null && layout.getChildCount() > 0) {
-            layout.removeAllViews();
-            layout.setVisibility(View.GONE);
-        }
+        try {
+            if (layout != null && layout.getChildCount() > 0) {
+                layout.removeAllViews();
+                layout.setVisibility(View.GONE);
+            }
 
-        if (listener != null) {
-            listener.failed();
-        }
+            if (listener != null) {
+                listener.failed();
+            }
 
-        dialog.dismiss();
+            dialog.dismiss();
+        } catch (Exception e) {
+
+        }
     }
 
     public void show() {
-        dialog.show();
+        try {
+            dialog.show();
+        } catch (Exception e) {
+
+        }
     }
 
 }

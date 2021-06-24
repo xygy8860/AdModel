@@ -2,8 +2,10 @@ package com.chenghui.lib.admodle;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Point;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -32,12 +34,11 @@ public class AdBannerUtils {
     private static List<TTNativeExpressAd> mTTAdList = new ArrayList<>();
     private static TTAdNative mTTAdNative;
 
-
     public static void initBanner(ViewGroup ttLayout, ViewGroup gdt, Activity context) {
 
         Random random = new Random();
         int rand = random.nextInt(100);
-        if (!AdModelUtils.isHavePermissions(context) || rand < AdModelUtils.TT_Banner_rate) {
+        if (rand < AdModelUtils.TT_Banner_rate) {
             loadExpressAd(ttLayout, gdt, context);
         } else {
             gdtBanner(gdt, context);
@@ -58,15 +59,21 @@ public class AdBannerUtils {
             }
             gdtLayout.removeAllViews();
 
-            bv = new UnifiedBannerView(activity, AdModelUtils.APPID, AdModelUtils.BannerPosID_2, new UnifiedBannerADListener() {
+            if (bv != null) {
+                bv.destroy();
+            }
+
+            bv = new UnifiedBannerView(activity, AdModelUtils.BannerPosID_2, new UnifiedBannerADListener() {
                 @Override
                 public void onNoAD(AdError adError) {
-
+                    Log.e("123",adError.getErrorCode() + adError.getErrorMsg());
                 }
 
                 @Override
                 public void onADReceive() {
-
+                    if (DownloadConfirmHelper.USE_CUSTOM_DIALOG) {
+                        bv.setDownloadConfirmListener(DownloadConfirmHelper.DOWNLOAD_CONFIRM_LISTENER);
+                    }
                 }
 
                 @Override
@@ -102,11 +109,17 @@ public class AdBannerUtils {
 
                 }
             });
-            gdtLayout.addView(bv);
+            gdtLayout.addView(bv, getUnifiedBannerLayoutParams(activity));
             bv.loadAD();
         } catch (Exception e) {
             // 异步线程问题
         }
+    }
+
+    private static FrameLayout.LayoutParams getUnifiedBannerLayoutParams(Activity activity) {
+        Point screenSize = new Point();
+        activity.getWindowManager().getDefaultDisplay().getSize(screenSize);
+        return new FrameLayout.LayoutParams(screenSize.x, Math.round(screenSize.x / 6.4F));
     }
 
     /*** 是否连接网络 **/
@@ -205,6 +218,11 @@ public class AdBannerUtils {
         });*/
 
         ad.setDislikeCallback(activity, new TTAdDislike.DislikeInteractionCallback() {
+            @Override
+            public void onShow() {
+
+            }
+
             @Override
             public void onSelected(int i, String s) {
                 //用户选择不喜欢原因后，移除广告展示

@@ -66,12 +66,8 @@ public class AdNativeUtils implements NativeExpressAD.NativeExpressADListener {
     }
 
     private void refreshAllAd(int count) {
-        Random random = new Random();
-        int rand = random.nextInt(100);
         //没有权限
-        if (!AdModelUtils.isHavePermissions(activity) || rand < AdModelUtils.TT_Native_rate) {  //如果落在头条范围内，开屏头条 rand < 50
-            refreshTTAd(0);
-        } else {
+        if (AdModelUtils.TT_Native_rate == 0) {  //如果落在头条范围内，开屏头条 rand < 50
             refreshAd(0);
         }
     }
@@ -83,7 +79,7 @@ public class AdNativeUtils implements NativeExpressAD.NativeExpressADListener {
             /**
              *  如果选择支持视频的模版样式，请使用{@link Constants#NativeExpressSupportVideoPosID}
              */
-            nativeExpressAD = new NativeExpressAD(activity, new ADSize(ADSize.FULL_WIDTH, ADSize.AUTO_HEIGHT), AdModelUtils.APPID,
+            nativeExpressAD = new NativeExpressAD(activity, new ADSize(ADSize.FULL_WIDTH, ADSize.AUTO_HEIGHT),
                     nativeId, this); // 这里的Context必须为Activity
             nativeExpressAD.setVideoOption(new VideoOption.Builder()
                     .setAutoPlayPolicy(VideoOption.AutoPlayPolicy.ALWAYS) // 设置什么网络环境下可以自动播放视频
@@ -98,10 +94,7 @@ public class AdNativeUtils implements NativeExpressAD.NativeExpressADListener {
     @Override
     public void onNoAD(AdError adError) {
         //Log.i(TAG, String.format("onNoAD, error code: %d, error msg: %s", adError.getErrorCode(), adError.getErrorMsg()));
-
-        if (count < 2) {
-            refreshAd(count + 1);
-        }
+        //refreshTTAd(2);
     }
 
     @Override
@@ -122,6 +115,9 @@ public class AdNativeUtils implements NativeExpressAD.NativeExpressADListener {
             }
 
             nativeExpressADView = adList.get(0);
+            if (DownloadConfirmHelper.USE_CUSTOM_DIALOG) {
+                nativeExpressADView.setDownloadConfirmListener(DownloadConfirmHelper.DOWNLOAD_CONFIRM_LISTENER);
+            }
             // 广告可见才会产生曝光，否则将无法产生收益。
             layout.addView(nativeExpressADView);
             nativeExpressADView.render();
@@ -195,11 +191,11 @@ public class AdNativeUtils implements NativeExpressAD.NativeExpressADListener {
     private void refreshTTAd(int count) {
         this.count = count;
         mTTAdNative = TTAdSdk.getAdManager().createAdNative(activity);
-        refreshNativieTTAd();
+        refreshNativieTTAd(count);
     }
 
     // 加载个性化模板广告
-    private void refreshNativieTTAd() {
+    private void refreshNativieTTAd(final int count) {
         Random random = new Random();
         int rand = random.nextInt(100);
         String id = AdModelUtils.TT_native_id;
@@ -219,7 +215,9 @@ public class AdNativeUtils implements NativeExpressAD.NativeExpressADListener {
         mTTAdNative.loadNativeExpressAd(adSlot, new TTAdNative.NativeExpressAdListener() {
             @Override
             public void onError(int code, String message) {
-
+                if (count < 1) {
+                    refreshAd(1);
+                }
             }
 
             @Override
@@ -259,7 +257,7 @@ public class AdNativeUtils implements NativeExpressAD.NativeExpressADListener {
             }
         });
         //dislike设置
-        //bindDislike(ad);
+        bindDislike(ad);
     }
 
     /**
@@ -271,10 +269,17 @@ public class AdNativeUtils implements NativeExpressAD.NativeExpressADListener {
         //使用默认模板中默认dislike弹出样式
         ad.setDislikeCallback(activity, new TTAdDislike.DislikeInteractionCallback() {
             @Override
+            public void onShow() {
+
+            }
+
+            @Override
             public void onSelected(int position, String value) {
                 //TToast.show(mContext, "点击 " + value);
                 //用户选择不喜欢原因后，移除广告展示
-                layout.removeAllViews();
+                if (layout != null) {
+                    layout.removeAllViews();
+                }
             }
 
             @Override

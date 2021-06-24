@@ -4,8 +4,9 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.ViewGroup;
 
+import com.chenghui.lib.admodle.AdBannerUtils;
 import com.chenghui.lib.admodle.AdInstalUtils;
-import com.chenghui.lib.admodle.AdNativeUtils;
+import com.chenghui.lib.admodle.AdModelUtils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -42,8 +43,12 @@ public class MainActivity extends AppCompatActivity {
         ViewGroup layout = findViewById(R.id.adlayout);
         new AdNativeUtils(this, layout);
 
-        adInstalUtils = new AdInstalUtils(this, 0, null);
-        adInstalUtils.refreshAd(0);
+//        adInstalUtils = new AdInstalUtils(this, 0, null);
+//        //adInstalUtils.refreshAd(0);
+//        //adInstalUtils.loadTTNewInstal(true);
+//        adInstalUtils.showTTInstal(true);
+
+        AdBannerUtils.initBanner(layout,layout,this);
     }
 
     @Override

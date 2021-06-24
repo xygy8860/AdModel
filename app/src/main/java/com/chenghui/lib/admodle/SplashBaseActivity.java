@@ -3,10 +3,9 @@ package com.chenghui.lib.admodle;
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.os.Handler;
+import android.os.CountDownTimer;
 import android.support.annotation.MainThread;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -17,15 +16,10 @@ import com.bytedance.sdk.openadsdk.AdSlot;
 import com.bytedance.sdk.openadsdk.TTAdNative;
 import com.bytedance.sdk.openadsdk.TTAdSdk;
 import com.bytedance.sdk.openadsdk.TTSplashAd;
-import com.qq.e.ads.cfg.VideoOption;
-import com.qq.e.ads.nativ.ADSize;
-import com.qq.e.ads.nativ.NativeExpressAD;
-import com.qq.e.ads.nativ.NativeExpressADView;
 import com.qq.e.ads.splash.SplashAD;
 import com.qq.e.ads.splash.SplashADListener;
 import com.qq.e.comm.util.AdError;
 
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -40,24 +34,18 @@ public abstract class SplashBaseActivity extends Activity {
     protected ViewGroup splashLayout; // 必须在子类赋值
     protected TextView mJumpBtn; // 必须在子类赋值
 
-    private NativeExpressADView nativeExpressADView;
-    private NativeExpressAD nativeExpressAD;
-
-    private Handler handler;
-    private TimeRunnable timeRunnable;
-    private TimeOutRunnable timeOutRunnable;
-
     //开屏广告加载超时时间,建议大于1000,这里为了冷启动第一次加载到广告并且展示,示例设置了2000ms
     private static final int AD_TIME_OUT = 2000;
     private static final int MSG_GO_MAIN = 1;
-    //开屏广告是否已经加载
-    private boolean mHasLoaded;
 
     //头条开屏强制跳转
     private boolean mForceJump;
 
     // 是否已经拉取过广告
     private int mGetAdFlag = 0; // 0:未获取广告 1：已获取一次广告  2：已获取两次广告
+
+    private CountDownTimer downTimer;
+    private SplashAD splashAD;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -77,22 +65,24 @@ public abstract class SplashBaseActivity extends Activity {
          * 例如：TT=50 BD=30
          *
          */
-        if (!AdModelUtils.isHavePermissions(this) || rand < AdModelUtils.TT_Splash_rate) {  //如果落在头条范围内，开屏头条 rand < 50
+        if (rand < AdModelUtils.TT_Splash_rate) {  //如果落在头条范围内，开屏头条 rand < 50
             try {
-                loadSplashTTAd();
+                loadSplashTTAd(0);
             } catch (Exception e) {
                 QQKaiping(0);
             }
         } else {
             QQKaiping(0);
         }
+
+        jishi();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         if (canJump) {
-            openMainActivity();
+            openMain();
         }
         canJump = true;
     }
@@ -116,24 +106,6 @@ public abstract class SplashBaseActivity extends Activity {
             splashLayout.removeAllViews();
             splashLayout = null;
         }
-
-        // 使用完了每一个NativeExpressADView之后都要释放掉资源
-        if (nativeExpressADView != null) {
-            nativeExpressADView.destroy();
-        }
-
-        if (handler != null) {
-            if (timeRunnable != null) {
-                handler.removeCallbacks(timeRunnable);
-            }
-            if (timeOutRunnable != null) {
-                handler.removeCallbacks(timeOutRunnable);
-            }
-            handler = null;
-            timeRunnable = null;
-        }
-
-        canJump = false;
     }
 
     /**
@@ -150,7 +122,7 @@ public abstract class SplashBaseActivity extends Activity {
     /**
      * 加载开屏广告
      */
-    private void loadSplashTTAd() {
+    private void loadSplashTTAd(final int count) {
         //step3:创建开屏广告请求参数AdSlot,具体参数含义参考文档
         AdSlot adSlot = new AdSlot.Builder()
                 .setCodeId(AdModelUtils.TT_Splash_id)
@@ -163,15 +135,6 @@ public abstract class SplashBaseActivity extends Activity {
             return;
         }
 
-        splashLayout.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (!mHasLoaded) {
-                    QQKaiping(0);
-                }
-            }
-        }, AD_TIME_OUT);
-
 
         TTAdNative mTTAdNative = TTAdSdk.getAdManager().createAdNative(this);
         //step4:请求广告，调用开屏广告异步请求接口，对请求回调的广告作渲染处理
@@ -179,38 +142,30 @@ public abstract class SplashBaseActivity extends Activity {
             @Override
             @MainThread
             public void onError(int code, String message) {
-                mHasLoaded = true;
-
-                if (mGetAdFlag == 0) {
-                    mGetAdFlag++;
+                if (count < 1) {
+                    loadSplashTTAd(1);
+                } else if (count < 2) {
                     QQKaiping(0);
-                } else if (mGetAdFlag == 1) {
-                    mGetAdFlag++;
-                    refreshAd(0);
                 } else {
-                    next();
+                    openMain();
                 }
             }
 
             @Override
             @MainThread
             public void onTimeout() {
-                mHasLoaded = true;
-                if (mGetAdFlag == 0) {
-                    mGetAdFlag++;
+                if (count < 1) {
+                    loadSplashTTAd(1);
+                } else if (count < 2) {
                     QQKaiping(0);
-                } else if (mGetAdFlag == 1) {
-                    mGetAdFlag++;
-                    refreshAd(0);
                 } else {
-                    next();
+                    openMain();
                 }
             }
 
             @Override
             @MainThread
             public void onSplashAdLoad(TTSplashAd ad) {
-                mHasLoaded = true;
                 mForceJump = true;
 
                 //获取SplashView
@@ -231,6 +186,9 @@ public abstract class SplashBaseActivity extends Activity {
                     @Override
                     public void onAdClicked(View view, int type) {
                         Log.d(TAG, "onAdClicked");
+                        if (downTimer != null) {
+                            downTimer.cancel();
+                        }
                     }
 
                     @Override
@@ -240,13 +198,13 @@ public abstract class SplashBaseActivity extends Activity {
 
                     @Override
                     public void onAdSkip() {
-                        Log.d(TAG, "onAdSkip");
+                        //Log.d(TAG, "onAdSkip");
                         next();
                     }
 
                     @Override
                     public void onAdTimeOver() {
-                        Log.d(TAG, "onAdTimeOver");
+                        //Log.d(TAG, "onAdTimeOver");
                         next();
                     }
                 });
@@ -266,8 +224,9 @@ public abstract class SplashBaseActivity extends Activity {
         }
 
         mJumpBtn.setVisibility(View.VISIBLE);
-        SplashAD splashAD = new SplashAD(this, mJumpBtn,
-                AdModelUtils.APPID, AdModelUtils.SplashID, new SplashADListener() {
+        splashAD = new SplashAD(this, mJumpBtn,
+                AdModelUtils.SplashID, new SplashADListener() {
+
             @Override
             public void onADDismissed() {
                 next();
@@ -275,32 +234,10 @@ public abstract class SplashBaseActivity extends Activity {
 
             @Override
             public void onNoAD(AdError adError) {
-                String err = adError.getErrorMsg();
-
-                //Log.e("123", "err:" + err);
-
-                if ((!TextUtils.isEmpty(err) && err.contains("网络类型错误")) || (!TextUtils.isEmpty(err) && err.contains("102006"))) {
-                    if (mGetAdFlag == 0) {
-                        mGetAdFlag++;
-                        loadSplashTTAd();
-                    } else if (mGetAdFlag == 1) {
-                        mGetAdFlag++;
-                        refreshAd(0);
-                    } else {
-                        next();
-                    }
-                } else if (count < 2) {
-                    QQKaiping(count + 1);
+                if (count < 1) {
+                    QQKaiping(1);
                 } else {
-                    if (mGetAdFlag == 0) {
-                        mGetAdFlag++;
-                        loadSplashTTAd();
-                    } else if (mGetAdFlag == 1) {
-                        mGetAdFlag++;
-                        refreshAd(0);
-                    } else {
-                        next();
-                    }
+                    openMain();
                 }
             }
 
@@ -311,26 +248,48 @@ public abstract class SplashBaseActivity extends Activity {
 
             @Override
             public void onADClicked() {
-
+                if (downTimer != null) {
+                    downTimer.cancel();
+                }
             }
 
             @Override
             public void onADTick(long l) {
                 mJumpBtn.setText(" " + Math.round(l / 1000) + "跳过 ");
+                //Log.e("123", "时长：" + l);
             }
 
             @Override
             public void onADExposure() {
-
+                //Log.e("123", "onADExposure：");
+                //jishi();
             }
 
             @Override
             public void onADLoaded(long l) {
-
+                //Log.e("123", "onADLoaded：" + l);
+                if (DownloadConfirmHelper.USE_CUSTOM_DIALOG) {
+                    splashAD.setDownloadConfirmListener(DownloadConfirmHelper.DOWNLOAD_CONFIRM_LISTENER);
+                }
             }
         }, 0);
 
         splashAD.fetchAndShowIn(splashLayout);
+    }
+
+    private void jishi() {
+        downTimer = new CountDownTimer(8000, 8000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+
+            }
+
+            @Override
+            public void onFinish() {
+                openMain();
+            }
+        };
+        downTimer.start();
     }
 
     protected void splash() {
@@ -342,152 +301,29 @@ public abstract class SplashBaseActivity extends Activity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                openMainActivity();
+                openMain();
             }
         }).start();
     }
 
-    protected void next() {
+    protected synchronized void next() {
         if (canJump) {
-            openMainActivity();
+            openMain();
         } else {
             canJump = true;
         }
     }
 
-    private void refreshAd(final int count) {
-
-        if (count == 0) {
-            if (handler == null) {
-                handler = new Handler();
-            }
-
-            if (timeOutRunnable == null) {
-                timeOutRunnable = new TimeOutRunnable();
-            }
-
-            handler.postDelayed(timeOutRunnable, 4000);
-        }
-
+    private void openMain() {
         try {
-            /**
-             *  如果选择支持视频的模版样式，请使用{@link Constants#NativeExpressSupportVideoPosID}
-             */
-            nativeExpressAD = new NativeExpressAD(this, new ADSize(ADSize.FULL_WIDTH, ADSize.AUTO_HEIGHT), AdModelUtils.APPID,
-                    AdModelUtils.NativeId_Img, new NativeExpressAD.NativeExpressADListener() {
-                @Override
-                public void onNoAD(AdError adError) {
+            if (downTimer != null) {
+                downTimer.cancel();
+            }
+        } catch (Exception er) {
 
-                    //Log.e("123", "原生noad" + adError.getErrorMsg());
-
-                    String msg = adError.getErrorMsg();
-                    try {
-                        if (count < 3 && !TextUtils.isEmpty(msg) && !msg.contains("102006")) {
-                            refreshAd(count + 1);
-                        } else {
-                            next();
-                        }
-                    } catch (Exception e) {
-
-                    }
-                }
-
-                @Override
-                public void onADLoaded(List<NativeExpressADView> adList) {
-                    try {
-                        // 释放前一个展示的NativeExpressADView的资源
-                        if (nativeExpressADView != null) {
-                            nativeExpressADView.destroy();
-                        }
-
-                        if (splashLayout.getVisibility() != View.VISIBLE) {
-                            splashLayout.setVisibility(View.VISIBLE);
-                        }
-
-                        if (splashLayout.getChildCount() > 0) {
-                            splashLayout.removeAllViews();
-                        }
-
-                        nativeExpressADView = adList.get(0);
-                        // 广告可见才会产生曝光，否则将无法产生收益。
-                        splashLayout.addView(nativeExpressADView);
-                        nativeExpressADView.render();
-                    } catch (Exception e) {
-                        //next();
-                    }
-                }
-
-                @Override
-                public void onRenderFail(NativeExpressADView adView) {
-                    next();
-                }
-
-                @Override
-                public void onRenderSuccess(NativeExpressADView adView) {
-                    if (handler == null) {
-                        handler = new Handler();
-                    }
-
-                    if (timeOutRunnable != null) {
-                        handler.removeCallbacks(timeOutRunnable);
-                    }
-
-                    timeRunnable = new TimeRunnable();
-                    handler.postDelayed(timeRunnable, 10);
-                    mJumpBtn.setVisibility(View.VISIBLE);
-
-                    int random = (int) (Math.random() * 100);
-                    if (random < AdModelUtils.mRand) {
-                        mJumpBtn.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                next();
-                            }
-                        });
-                    }
-                }
-
-                @Override
-                public void onADExposure(NativeExpressADView adView) {
-                    Log.i(TAG, "onADExposure");
-                }
-
-                @Override
-                public void onADClicked(NativeExpressADView adView) {
-                    Log.i(TAG, "onADClicked");
-                }
-
-                @Override
-                public void onADClosed(NativeExpressADView adView) {
-                    // 当广告模板中的关闭按钮被点击时，广告将不再展示。NativeExpressADView也会被Destroy，释放资源，不可以再用来展示。
-                    if (splashLayout != null && splashLayout.getChildCount() > 0) {
-                        splashLayout.removeAllViews();
-                        splashLayout.setVisibility(View.GONE);
-                    }
-                    //next();
-                }
-
-                @Override
-                public void onADLeftApplication(NativeExpressADView adView) {
-                }
-
-                @Override
-                public void onADOpenOverlay(NativeExpressADView adView) {
-                }
-
-                @Override
-                public void onADCloseOverlay(NativeExpressADView adView) {
-                }
-
-            }); // 这里的Context必须为Activity
-            nativeExpressAD.setVideoOption(new VideoOption.Builder()
-                    .setAutoPlayPolicy(VideoOption.AutoPlayPolicy.WIFI) // 设置什么网络环境下可以自动播放视频
-                    .setAutoPlayMuted(true) // 设置自动播放视频时，是否静音
-                    .build()); // setVideoOption是可选的，开发者可根据需要选择是否配置
-            nativeExpressAD.loadAD(1);
-        } catch (Exception e) {
-            next();
         }
+
+        openMainActivity();
     }
 
     /**
@@ -499,32 +335,5 @@ public abstract class SplashBaseActivity extends Activity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-    }
-
-    class TimeRunnable implements Runnable {
-        public long t = 5000;
-
-        @Override
-        public void run() {
-            if (t <= 0) {
-                next();
-            } else {
-                mJumpBtn.setText(" " + Math.round(t / 1000) + "跳过 ");
-                t = t - 100;
-                if (t > 100) {
-                    handler.postDelayed(timeRunnable, 100);
-                } else {
-                    handler.postDelayed(timeRunnable, 10);
-                }
-            }
-        }
-    }
-
-    class TimeOutRunnable implements Runnable {
-
-        @Override
-        public void run() {
-            next();
-        }
     }
 }

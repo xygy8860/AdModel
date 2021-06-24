@@ -13,9 +13,19 @@
         <item name="android:windowIsFloating">true</item><!--是否浮现在activity之上-->
         <item name="android:windowIsTranslucent">false</item><!--半透明-->
         <item name="android:windowNoTitle">true</item><!--无标题-->
-        <item name="android:windowBackground">@color/transparent</item><!--背景透明-->
+        <item name="android:windowBackground">@color/tt_white</item><!--背景透明-->
         <item name="android:backgroundDimEnabled">true</item><!--模糊-->
         <item name="android:backgroundDimAmount">0.5</item> <!-- 背景灰度值 -->
+    </style>
+    
+    <style name="DownloadConfirmDialogFullScreen" parent="android:Theme.Dialog">
+        <item name="android:windowFullscreen">true</item>
+    </style>
+    <style name="DownloadConfirmDialogAnimationUp">
+        <item name="android:windowEnterAnimation">@anim/download_confirm_dialog_slide_up</item>
+    </style>
+    <style name="DownloadConfirmDialogAnimationRight">
+        <item name="android:windowEnterAnimation">@anim/download_confirm_dialog_slide_right_in</item>
     </style>
 
 </resources>

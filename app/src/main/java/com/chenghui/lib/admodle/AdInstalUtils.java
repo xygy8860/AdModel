@@ -1,18 +1,15 @@
 package com.chenghui.lib.admodle;
 
 import android.app.Activity;
-import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
 
 import com.bytedance.sdk.openadsdk.AdSlot;
+import com.bytedance.sdk.openadsdk.TTAdConstant;
 import com.bytedance.sdk.openadsdk.TTAdNative;
 import com.bytedance.sdk.openadsdk.TTAdSdk;
-import com.bytedance.sdk.openadsdk.TTNativeExpressAd;
+import com.bytedance.sdk.openadsdk.TTFullScreenVideoAd;
 import com.qq.e.ads.cfg.VideoOption;
-import com.qq.e.ads.interstitial.AbstractInterstitialADListener;
-import com.qq.e.ads.interstitial.InterstitialAD;
 import com.qq.e.ads.nativ.ADSize;
 import com.qq.e.ads.nativ.NativeExpressAD;
 import com.qq.e.ads.nativ.NativeExpressADView;
@@ -35,35 +32,22 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
     private int count;
     private InstlDialog dialog;
     private Activity activity;
-    private InterstitialAD iad;
 
     private String nativeId;
-    private boolean isShowClosedBtn;
-    private int mRand = 0;
 
     private boolean isVertical;
     private InstalCarouselDialog mCarouselDialog;
     private OnLoadAdListener listener;
-    private TTAdNative mTTAdNative;
+    private TTFullScreenVideoAd mttFullVideoAd;
+    private boolean mIsLoaded;
+    private boolean mIsError;
+    private boolean isShow;
+    private boolean isTTVertical = true;
 
     // 横屏
     public AdInstalUtils(Activity activity, int mRand, OnLoadAdListener listener) {
         this(activity);
-        this.mRand = mRand;
         this.listener = listener;
-    }
-
-    //竖屏
-    public AdInstalUtils(Activity activity, String nativeId, int mRand, OnLoadAdListener listener) {
-        this.activity = activity;
-        this.nativeId = nativeId;
-        this.listener = listener;
-        this.mRand = mRand;
-        isVertical = true;
-
-        if (nativeId.equals(AdModelUtils.NativeId_Img) || nativeId.equals(AdModelUtils.NativeId_Horizontal_Img)) {
-            isShowClosedBtn = true;
-        }
     }
 
     private AdInstalUtils(Activity activity) {
@@ -84,29 +68,105 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
         }
         int i = new Random().nextInt(list.size());
         nativeId = list.get(i);
-
-        if (nativeId.equals(AdModelUtils.NativeId_Img) || nativeId.equals(AdModelUtils.NativeId_Horizontal_Img)) {
-            isShowClosedBtn = true;
-        }
     }
 
+    public void loadTTNewInstal(boolean isVertical, boolean isNeedShow) {
+
+        this.isTTVertical = isVertical;
+        if (mttFullVideoAd != null && mIsLoaded) {
+            return;
+        }
+
+        mIsError = false;
+        mIsLoaded = false;
+        isShow = false;
+
+        if (isNeedShow) {
+            isShow = true;
+        }
+
+        TTAdNative mTTAdNative = TTAdSdk.getAdManager().createAdNative(activity);
+        AdSlot adSlot = new AdSlot.Builder()
+                .setCodeId(isVertical ? AdModelUtils.TT_instal_id : AdModelUtils.TT_instal_Horizontal_id)
+                //模板广告需要设置期望个性化模板广告的大小,单位dp,激励视频场景，只要设置的值大于0即可
+                .setExpressViewAcceptedSize(500, 500)
+                .setSupportDeepLink(true)
+                .setOrientation(isVertical ? TTAdConstant.VERTICAL : TTAdConstant.HORIZONTAL)//必填参数，期望视频的播放方向：TTAdConstant.HORIZONTAL 或 TTAdConstant.VERTICAL
+                .build();
+        mTTAdNative.loadFullScreenVideoAd(adSlot, new TTAdNative.FullScreenVideoAdListener() {
+            //请求广告失败
+            @Override
+            public void onError(final int code, final String message) {
+                mIsLoaded = false;
+                mIsError = true;
+
+                if (isShow && AdModelUtils.TT_Native_rate != 0) {
+                    refreshAd(0);
+                }
+            }
+
+            //广告物料加载完成的回调
+            @Override
+            public void onFullScreenVideoAdLoad(TTFullScreenVideoAd ad) {
+                mttFullVideoAd = ad;
+            }
+
+            //广告视频/图片加载完成的回调，接入方可以在这个回调后展示广告
+            @Override
+            public void onFullScreenVideoCached() {
+                mIsLoaded = true;
+                if (isShow) {
+                    try {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (mttFullVideoAd != null && mIsLoaded) {
+                                    //展示广告，并传入广告展示的场景
+                                    mttFullVideoAd.showFullScreenVideoAd(activity, TTAdConstant.RitScenes.HOME_GET_PROPS, null);
+                                    mttFullVideoAd = null;
+                                }
+                            }
+                        });
+                    } catch (Exception e) {
+
+                    }
+                }
+            }
+        });
+    }
+
+
+    /**
+     * @param isTT 是否展示头条
+     */
+    public synchronized void showTTInstal(boolean isVertical, boolean isTT) {
+        this.isTTVertical = isVertical;
+
+        if (AdModelUtils.TT_Native_rate == 0 && !isTT) {  //如果落在腾讯范围内，加载腾讯
+            refreshAd(0);
+            return;
+        }
+
+        try {
+            if (mttFullVideoAd != null && mIsLoaded) {
+                //展示广告，并传入广告展示的场景
+                mttFullVideoAd.showFullScreenVideoAd(activity, TTAdConstant.RitScenes.HOME_GET_PROPS, null);
+                mttFullVideoAd = null;
+                return;
+            }
+        } catch (Exception e) {
+
+        }
+
+        if (mIsError || mttFullVideoAd == null) {
+            loadTTNewInstal(isTTVertical, true);
+        } else if (!mIsLoaded) {
+            isShow = true;
+        }
+    }
 
     public void refreshAd(int count) {
-        Random random = new Random();
-        int rand = random.nextInt(100);
-        //没有权限
-        if (!AdModelUtils.isHavePermissions(activity) || rand < AdModelUtils.TT_Native_rate) {  //如果落在头条范围内，开屏头条 rand < 50
-            refreshTTAd(0);
-        } else {
-            refreshGdtAd(0);
-        }
-    }
-
-    // 加载TT广告
-    private void refreshTTAd(int count) {
-        this.count = count;
-        mTTAdNative = TTAdSdk.getAdManager().createAdNative(activity);
-        refreshNativieTTAd();
+        refreshGdtAd(0);
     }
 
     private void refreshGdtAd(int count) {
@@ -116,7 +176,7 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
             /**
              *  如果选择支持视频的模版样式，请使用{@link Constants#NativeExpressSupportVideoPosID}
              */
-            nativeExpressAD = new NativeExpressAD(activity, new ADSize(ADSize.FULL_WIDTH, ADSize.AUTO_HEIGHT), AdModelUtils.APPID,
+            nativeExpressAD = new NativeExpressAD(activity, new ADSize(ADSize.FULL_WIDTH, ADSize.AUTO_HEIGHT),
                     nativeId, this); // 这里的Context必须为Activity
             nativeExpressAD.setVideoOption(new VideoOption.Builder()
                     .setAutoPlayPolicy(VideoOption.AutoPlayPolicy.ALWAYS) // 设置什么网络环境下可以自动播放视频
@@ -124,18 +184,21 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
                     .build()); // setVideoOption是可选的，开发者可根据需要选择是否配置
             nativeExpressAD.loadAD(isVertical ? 3 : 1);
         } catch (Exception e) {
-            showGdtInshal();
+            if (AdModelUtils.TT_Native_rate == 0) {
+                showTTInstal(isTTVertical, true);
+            }
         }
     }
 
     @Override
     public void onNoAD(AdError adError) {
         Log.i(TAG, String.format("onNoAD, error code: %d, error msg: %s", adError.getErrorCode(), adError.getErrorMsg()));
-
-        if (count < 2) {
-            refreshGdtAd(count + 1);
-        } else {
-            showGdtInshal();
+        if (AdModelUtils.TT_Native_rate == 0) {
+            if (count < 1) {
+                refreshGdtAd(1);
+            } else {
+                showTTInstal(isTTVertical, true);
+            }
         }
     }
 
@@ -144,7 +207,7 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
         try {
             if (isVertical) {
                 if (mCarouselDialog == null) {
-                    mCarouselDialog = new InstalCarouselDialog(activity, isShowClosedBtn, mRand, listener);
+                    mCarouselDialog = new InstalCarouselDialog(activity, listener);
                 }
                 mCarouselDialog.show();
                 mCarouselDialog.setAdList(adList);
@@ -156,22 +219,32 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
                 }
 
                 if (dialog == null) {
-                    dialog = new InstlDialog(activity, isShowClosedBtn, mRand, listener);
+                    dialog = new InstlDialog(activity, listener);
                 }
 
                 dialog.show();
 
                 nativeExpressADView = adList.get(0);
+                if (DownloadConfirmHelper.USE_CUSTOM_DIALOG) {
+                    nativeExpressADView.setDownloadConfirmListener(DownloadConfirmHelper.DOWNLOAD_CONFIRM_LISTENER);
+                }
                 // 广告可见才会产生曝光，否则将无法产生收益。
                 dialog.setNativeAd(nativeExpressADView);
                 nativeExpressADView.render();
+
+                if (AdModelUtils.TT_Native_rate != 0) {
+                    int count = AdmodelSPUtls.getInstance(activity).getInt("gdtCount", 0);
+                    AdmodelSPUtls.getInstance(activity).putInt("gdtCount", count + 3);
+                }
             }
 
             if (listener != null) {
                 listener.successed();
             }
         } catch (Exception e) {
-            showGdtInshal();
+            if (AdModelUtils.TT_Native_rate == 0) {
+                showTTInstal(isTTVertical, true);
+            }
         }
     }
 
@@ -182,7 +255,9 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
             if (dialog != null) {
                 dialog.dismiss();
             }
-            showGdtInshal();
+            if (AdModelUtils.TT_Native_rate == 0) {
+                showTTInstal(isTTVertical, true);
+            }
         }
     }
 
@@ -252,49 +327,6 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
         Log.i(TAG, "onADCloseOverlay");
     }
 
-    private void requestGdt() {
-        if (iad == null) {
-            iad = new InterstitialAD(activity, AdModelUtils.APPID, AdModelUtils.InstalPosID);
-        }
-        iad.setADListener(new AbstractInterstitialADListener() {
-            @Override
-            public void onADReceive() {
-                iad.show();
-
-                if (listener != null) {
-                    listener.successed();
-                }
-            }
-
-            @Override
-            public void onNoAD(AdError adError) {
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        adviewInstal();
-                    }
-                });
-            }
-        });
-        iad.loadAD();
-    }
-
-    private void showGdtInshal() {
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            requestGdt();
-        } else {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    requestGdt();
-                }
-            });
-        }
-    }
-
-    private void adviewInstal() {
-    }
-
     public void ondetory() {
         if (dialog != null) {
             dialog.dismiss();
@@ -307,6 +339,10 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
         if (nativeExpressADView != null) {
             nativeExpressADView.destroy();
         }
+
+        if (mttFullVideoAd != null) {
+            mttFullVideoAd = null;
+        }
     }
 
     public interface OnLoadAdListener {
@@ -317,76 +353,5 @@ public class AdInstalUtils implements NativeExpressAD.NativeExpressADListener {
         void closed();
     }
 
-    // 加载个性化模板广告
-    private void refreshNativieTTAd() {
-
-        Random random = new Random();
-        int rand = random.nextInt(100);
-        String id = AdModelUtils.TT_native_id;
-        if (rand > AdModelUtils.TT_Native_model_rate) {
-            id = AdModelUtils.TT_native_video_id;
-        }
-
-        //step4:创建广告请求参数AdSlot,具体参数含义参考文档
-        AdSlot adSlot = new AdSlot.Builder()
-                .setCodeId(id) //广告位id
-                .setSupportDeepLink(true)
-                .setAdCount(1) //请求广告数量为1到3条
-                .setExpressViewAcceptedSize(350, 0) //期望模板广告view的size,单位dp
-                .setImageAcceptedSize(640, 320)//这个参数设置即可，不影响模板广告的size
-                .build();
-        //step5:请求广告，对请求回调的广告作渲染处理
-        mTTAdNative.loadNativeExpressAd(adSlot, new TTAdNative.NativeExpressAdListener() {
-            @Override
-            public void onError(int code, String message) {
-
-            }
-
-            @Override
-            public void onNativeExpressAdLoad(List<TTNativeExpressAd> ads) {
-                if (ads == null || ads.size() == 0) {
-                    return;
-                }
-                TTNativeExpressAd mTTAd = ads.get(0);
-                bindAdListener(mTTAd);
-                mTTAd.render();
-            }
-        });
-    }
-
-    private void bindAdListener(TTNativeExpressAd ad) {
-        ad.setExpressInteractionListener(new TTNativeExpressAd.ExpressAdInteractionListener() {
-            @Override
-            public void onAdClicked(View view, int type) {
-                Log.e("123", "广告被点击");
-                if (dialog != null) {
-                    dialog.dismiss();
-                }
-            }
-
-            @Override
-            public void onAdShow(View view, int type) {
-                //TToast.show(mContext, "广告展示");
-            }
-
-            @Override
-            public void onRenderFail(View view, String msg, int code) {
-                //Log.e("ExpressView","render fail:"+(System.currentTimeMillis() - startTime));
-                //TToast.show(mContext, msg+" code:"+code);
-            }
-
-            @Override
-            public void onRenderSuccess(View view, float width, float height) {
-                if (dialog == null) {
-                    dialog = new InstlDialog(activity, isShowClosedBtn, mRand, listener);
-                }
-
-                dialog.show();
-                dialog.setNativeAd(view);
-            }
-        });
-        //dislike设置
-        //bindDislike(ad, false);
-    }
 
 }

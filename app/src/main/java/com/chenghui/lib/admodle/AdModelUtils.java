@@ -8,8 +8,10 @@ import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 
 import com.bytedance.sdk.openadsdk.TTAdConfig;
-import com.bytedance.sdk.openadsdk.TTAdConstant;
 import com.bytedance.sdk.openadsdk.TTAdSdk;
+import com.bytedance.sdk.openadsdk.TTCustomController;
+import com.bytedance.sdk.openadsdk.TTLocation;
+import com.qq.e.comm.managers.GDTADManager;
 
 /**
  * Created by cdsunqinwei on 2018/3/21.
@@ -26,7 +28,75 @@ public class AdModelUtils {
             Manifest.permission.READ_PHONE_STATE
     };
 
-    // 百度广告初始化
+    public static void initGDT(Context context) {
+        GDTADManager.getInstance().initWith(context, AdModelUtils.APPID);
+    }
+
+    // 头条广告初始化
+    public static void initTTAdHuawei(Context context) {
+        if (TextUtils.isEmpty(AdModelUtils.TT_Appid)) {
+            return;
+        }
+
+        //强烈建议在应用对应的Application#onCreate()方法中调用，避免出现content为null的异常
+        TTAdSdk.init(context,
+                new TTAdConfig.Builder()
+                        .appId(AdModelUtils.TT_Appid)
+                        .useTextureView(false) //使用TextureView控件播放视频,默认为SurfaceView,当有SurfaceView冲突的场景，可以使用TextureView
+                        .appName(AdModelUtils.TT_Name)
+                        //.titleBarTheme(TTAdConstant.TITLE_BAR_THEME_DARK)
+                        .allowShowNotify(true) //是否允许sdk展示通知栏提示
+                        //.allowShowPageWhenScreenLock(true) //是否在锁屏场景支持展示广告落地页
+                        //.debug(false) //测试阶段打开，可以通过日志排查问题，上线时去除该调用
+                        .directDownloadNetworkType() //弹窗确认
+                        .supportMultiProcess(false) //是否支持多进程，true支持
+                        .customController(new TTCustomController() {
+                            @Override
+                            public boolean isCanUseLocation() {
+                                return false;
+                            }
+
+                            @Override
+                            public TTLocation getTTLocation() {
+                                return null;
+                            }
+
+                            @Override
+                            public boolean alist() {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean isCanUsePhoneState() {
+                                return false;
+                            }
+
+                            @Override
+                            public String getDevImei() {
+                                return null;
+                            }
+
+                            @Override
+                            public boolean isCanUseWifiState() {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean isCanUseWriteExternal() {
+                                return super.isCanUseWriteExternal();
+                            }
+
+                            @Override
+                            public String getDevOaid() {
+                                return TT_deviceid;
+                            }
+                        })
+                        .build());
+
+        DownloadConfirmHelper.USE_CUSTOM_DIALOG = true;
+    }
+
+    // 头条广告初始化
     public static void initTTAd(Context context) {
         if (TextUtils.isEmpty(AdModelUtils.TT_Appid)) {
             return;
@@ -40,10 +110,51 @@ public class AdModelUtils {
                         .appName(AdModelUtils.TT_Name)
                         //.titleBarTheme(TTAdConstant.TITLE_BAR_THEME_DARK)
                         .allowShowNotify(true) //是否允许sdk展示通知栏提示
-                        .allowShowPageWhenScreenLock(true) //是否在锁屏场景支持展示广告落地页
+                        //.allowShowPageWhenScreenLock(true) //是否在锁屏场景支持展示广告落地页
                         //.debug(false) //测试阶段打开，可以通过日志排查问题，上线时去除该调用
-                        .directDownloadNetworkType(TTAdConstant.NETWORK_STATE_WIFI, TTAdConstant.NETWORK_STATE_4G) //允许直接下载的网络状态集合
+                        //.directDownloadNetworkType(TTAdConstant.NETWORK_STATE_WIFI, TTAdConstant.NETWORK_STATE_4G) //允许直接下载的网络状态集合
                         .supportMultiProcess(false) //是否支持多进程，true支持
+                        .customController(new TTCustomController() {
+                            @Override
+                            public boolean isCanUseLocation() {
+                                return false;
+                            }
+
+                            @Override
+                            public TTLocation getTTLocation() {
+                                return null;
+                            }
+
+                            @Override
+                            public boolean alist() {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean isCanUsePhoneState() {
+                                return false;
+                            }
+
+                            @Override
+                            public String getDevImei() {
+                                return null;
+                            }
+
+                            @Override
+                            public boolean isCanUseWifiState() {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean isCanUseWriteExternal() {
+                                return super.isCanUseWriteExternal();
+                            }
+
+                            @Override
+                            public String getDevOaid() {
+                                return TT_deviceid;
+                            }
+                        })
                         .build());
     }
 
@@ -97,5 +208,9 @@ public class AdModelUtils {
     public static String TT_Name = "";
     public static String TT_native_video_id = ""; // 原生 个性化模板 视频
     public static String TT_native_id = ""; // 原生 个性化模板 混合
+    public static String TT_instal_id = ""; // 头条 插屏
+    public static String TT_instal_Horizontal_id = ""; // 头条 插屏 横屏
+
+    public static String TT_deviceid = ""; // 用户id
 
 }
